@@ -1,17 +1,20 @@
+import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import { entityRoutes } from './routes/entity.routes.js'
 
 const app = Fastify({ logger: true })
 
-// Permite requisições do frontend
 await app.register(cors, { origin: true })
 
-// Rota de saúde — para verificar se o servidor está no ar
+// Registra as rotas
+await app.register(entityRoutes)
+
+// Rota de saúde
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() }
 })
 
-// Inicia o servidor
 app.listen({ port: 3333, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     app.log.error(err)

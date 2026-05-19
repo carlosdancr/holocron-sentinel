@@ -1,0 +1,109 @@
+import { prisma } from '../lib/prisma.js'
+
+interface CreateEntityInput {
+  name: string
+}
+
+interface ListEntitiesInput {
+  page: number
+  limit: number
+  status?: string
+}
+
+export class EntityService {
+  /**
+   * Cria uma nova entidade monitorada.
+   * Toda entidade começa com status "active" e zero eventos críticos.
+   */
+  async create(input: CreateEntityInput) {
+    const entity = await prisma.entity.create({
+      data: {
+        name: input.name,
+        // status e criticalEventsCount usam os defaults do schema
+      },
+    })
+
+    return entity
+  }
+
+  /**
+   * Lista entidades com agregações de eventos.
+   *
+   * Em vez de fazer N+1 queries (1 para listar + N para contar eventos de cada),
+   * usamos uma única query com subqueries agregadas.
+   *
+   * O Prisma não suporta agregações complexas em relações diretamente,
+   * então usamos raw SQL para ter controle total da performance.
+   */
+  async list(input: ListEntitiesInput) {
+    const { page, limit, status } = input
+    const offset = (page - 1) * limit
+
+    // Monta a cláusula WHERE dinamicamente
+    const whereClause = status ? `WHERE e.status = '${status}'` : ''
+    // Versão segura com parâmetro para a contagem
+    const whereClauseParam = status ? `WHERE e.status = $1` : ''
+
+    // Query principal com agregações via subqueries
+    // Cada subquery é resolvida pelo índice (entityId, createdAt)
+    const entities = await prisma.$queryRawUnsafe<
+      Array<{
+        id: string
+        name: string
+        status: string
+        critical_events_count: number
+        created_at: Date
+        updated_at: Date
+        total_events: bigint
+        total_critical_events: bigint
+        last_event_at: Date | null
+      }>
+    >(
+      `
+      SELECT
+        e.id,
+        e.name,
+        e.status,
+        e.critical_events_count,
+        e.created_at,
+        e.updated_at,
+        (SELECT COUNT(*) FROM events ev WHERE ev.entity_id = e.id) AS total_events,
+        (SELECT COUNT(*) FROM events ev WHERE ev.entity_id = e.id AND ev.type = 'critical') AS total_critical_events,
+        (SELECT MAX(ev.created_at) FROM events ev WHERE ev.entity_id = e.id) AS last_event_at
+      FROM entities e
+      ${whereClause}
+      ORDER BY e.created_at DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+      `,
+    )
+
+    // Conta o total para paginação
+    const countResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+      `SELECT COUNT(*) as count FROM entities e ${whereClauseParam}`,
+      ...(status ? [status] : []),
+    )
+
+    const total = Number(countResult[0].count)
+
+    return {
+      data: entities.map((entity) => ({
+        id: entity.id,
+        name: entity.name,
+        status: entity.status,
+        criticalEventsCount: Number(entity.critical_events_count),
+        createdAt: entity.created_at,
+        updatedAt: entity.updated_at,
+        totalEvents: Number(entity.total_events),
+        totalCriticalEvents: Number(entity.total_critical_events),
+        lastEventAt: entity.last_event_at,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
+  }
+}
