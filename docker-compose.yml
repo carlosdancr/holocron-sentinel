@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: holocron-db
+    environment:
+      POSTGRES_USER: holocron
+      POSTGRES_PASSWORD: holocron123
+      POSTGRES_DB: holocron_sentinel
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
