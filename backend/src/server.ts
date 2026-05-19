@@ -1,16 +1,19 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
 import { entityRoutes } from './routes/entity.routes.js'
 
 const app = Fastify({ logger: true })
 
+// Registra o Zod como validador do Fastify
+app.setValidatorCompiler(validatorCompiler)
+app.setSerializerCompiler(serializerCompiler)
+
 await app.register(cors, { origin: true })
 
-// Registra as rotas
 await app.register(entityRoutes)
 
-// Rota de saúde
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() }
 })

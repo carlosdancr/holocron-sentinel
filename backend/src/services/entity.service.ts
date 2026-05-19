@@ -1,14 +1,5 @@
 import { prisma } from '../lib/prisma.js'
-
-interface CreateEntityInput {
-  name: string
-}
-
-interface ListEntitiesInput {
-  page: number
-  limit: number
-  status?: string
-}
+import type { CreateEntityInput, ListEntitiesInput } from '../schemas/entity.schemas.js'
 
 export class EntityService {
   /**
@@ -19,7 +10,6 @@ export class EntityService {
     const entity = await prisma.entity.create({
       data: {
         name: input.name,
-        // status e criticalEventsCount usam os defaults do schema
       },
     })
 

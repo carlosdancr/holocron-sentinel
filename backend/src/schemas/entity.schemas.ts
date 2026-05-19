@@ -1,25 +1,17 @@
+import { z } from 'zod'
+
 // Schema de validação para criação de entidade
-// O Fastify usa JSON Schema para validar automaticamente o body da requisição
-export const createEntitySchema = {
-  body: {
-    type: 'object' as const,
-    required: ['name'],
-    properties: {
-      name: { type: 'string', minLength: 1 },
-    },
-    additionalProperties: false,
-  },
-}
+export const createEntitySchema = z.object({
+  name: z.string().min(1, 'O nome é obrigatório'),
+})
 
 // Schema de validação para query params da listagem
-export const listEntitiesSchema = {
-  querystring: {
-    type: 'object' as const,
-    properties: {
-      page: { type: 'integer', minimum: 1, default: 1 },
-      limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
-      status: { type: 'string', enum: ['active', 'suspended'] },
-    },
-    additionalProperties: false,
-  },
-}
+export const listEntitiesSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(['active', 'suspended']).optional(),
+})
+
+// Tipos inferidos automaticamente — não precisa escrever interfaces na mão!
+export type CreateEntityInput = z.infer<typeof createEntitySchema>
+export type ListEntitiesInput = z.infer<typeof listEntitiesSchema>
