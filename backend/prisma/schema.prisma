@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,52 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================
+// Entidade monitorada (planeta, base, nave...)
+// ============================================
+model Entity {
+  id                    String   @id @default(uuid())
+  name                  String
+  status                String   @default("active") // "active" | "suspended"
+  criticalEventsCount   Int      @default(0)        @map("critical_events_count")
+  createdAt             DateTime @default(now())     @map("created_at")
+  updatedAt             DateTime @updatedAt          @map("updated_at")
+
+  // Relação: uma entidade tem muitos eventos
+  events Event[]
+
+  // Índice para filtrar por status (listagem de entidades ativas)
+  @@index([status])
+
+  // Nome da tabela no banco
+  @@map("entities")
+}
+
+// ============================================
+// Evento associado a uma entidade
+// ============================================
+model Event {
+  id         String   @id @default(uuid())
+  entityId   String   @map("entity_id")
+  externalId String   @map("external_id")
+  type       String   // "info" | "warning" | "critical"
+  payload    Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relação: cada evento pertence a uma entidade
+  entity Entity @relation(fields: [entityId], references: [id])
+
+  // UNIQUE no external_id — garante idempotência no nível do banco
+  @@unique([externalId])
+
+  // Índice para listar eventos de uma entidade (ordenados por data)
+  @@index([entityId, createdAt])
+
+  // Índice para o ranking: busca eventos críticos dos últimos 7 dias
+  @@index([type, createdAt])
+
+  // Nome da tabela no banco
+  @@map("events")
 }
