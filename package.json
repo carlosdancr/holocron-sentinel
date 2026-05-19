@@ -1,0 +1,17 @@
+{
+  "name": "escavador-challenge",
+  "version": "1.0.0",
+  "description": "Você pode escolher entre Node.js e PHP Laravel para o backend. Você precisa utilizar Next.js na implementação do frontend.",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "prettier": "^3.8.3"
+  }
+}
