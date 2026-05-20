@@ -8,10 +8,13 @@ import {
   XCircle,
   Info,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Send,
   Activity,
   Loader2,
+  Ban,
+  RotateCcw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -37,6 +40,10 @@ import { CRITICAL_EVENTS_LIMIT } from '@/lib/constants'
 interface PageProps {
   params: Promise<{ id: string }>
 }
+
+// ===== Constants =====
+
+const EVENTS_PER_PAGE = 8
 
 // ===== Severity icons =====
 
@@ -66,6 +73,7 @@ export default function EntityDetailPage({ params }: PageProps) {
   const pagination = eventsData?.pagination
 
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null)
+  const [eventPage, setEventPage] = useState(0)
 
   // Derivados
   const isSuspended = entity?.status === 'suspended'
@@ -85,6 +93,12 @@ export default function EntityDetailPage({ params }: PageProps) {
     }
   }, [events])
 
+  // Paginação do histórico de eventos
+  const totalEventPages = Math.ceil(events.length / EVENTS_PER_PAGE)
+  const pagedEvents = events.slice(eventPage * EVENTS_PER_PAGE, (eventPage + 1) * EVENTS_PER_PAGE)
+  const eventsFrom = events.length > 0 ? eventPage * EVENTS_PER_PAGE + 1 : 0
+  const eventsTo = Math.min((eventPage + 1) * EVENTS_PER_PAGE, events.length)
+
   // Toggle status handler
   const handleToggleStatus = () => {
     if (!entity) return
@@ -95,12 +109,12 @@ export default function EntityDetailPage({ params }: PageProps) {
         onSuccess: () => {
           toast.success(
             newStatus === 'active'
-              ? 'Entidade reativada com sucesso'
-              : 'Entidade suspensa com sucesso',
+              ? 'A entidade foi reativada com sucesso.'
+              : 'A entidade foi suspensa com sucesso.',
           )
         },
         onError: () => {
-          toast.error('Erro ao alterar status da entidade')
+          toast.error('Não foi possível alterar o status da entidade.')
         },
       },
     )
@@ -121,12 +135,12 @@ export default function EntityDetailPage({ params }: PageProps) {
       <div className="flex flex-1 px-9 py-12">
         <EmptyState
           icon={<AlertTriangle size={24} strokeWidth={1.6} />}
-          title="Entidade nao encontrada"
-          description="O ID solicitado nao existe ou foi removido do registro."
+          title="Entidade não encontrada"
+          description="O ID solicitado não existe ou foi removido do registro."
           action={
             <button
               onClick={() => router.push('/')}
-              className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2"
+              className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-sm border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-120 hover:bg-surface-2"
             >
               <ArrowLeft size={12} strokeWidth={1.6} />
               Voltar ao dashboard
@@ -140,10 +154,19 @@ export default function EntityDetailPage({ params }: PageProps) {
   return (
     <>
       <PageHeader
-        title={entity.name}
+        title={
+          <span className="flex items-center gap-3">
+            <EntityAvatar name={entity.name} size={32} />
+            {entity.name}
+            <StatusBadge status={entity.status} />
+          </span>
+        }
         breadcrumb={
           <>
-            <button onClick={() => router.push('/')} className="hover:text-text transition-colors">
+            <button
+              onClick={() => router.push('/')}
+              className="cursor-pointer hover:text-text transition-colors"
+            >
               Dashboard
             </button>
             <span className="mx-1.5 text-text-faint">/</span>
@@ -159,26 +182,23 @@ export default function EntityDetailPage({ params }: PageProps) {
         }
         actions={
           <div className="flex items-center gap-2.5">
-            <EntityAvatar name={entity.name} size={38} />
-            <StatusBadge status={entity.status} />
-
             <button
               onClick={handleToggleStatus}
               disabled={toggleStatus.isPending}
-              className={cn(
-                'inline-flex h-[34px] items-center gap-[7px] rounded-lg border px-3.5 text-[13px] font-medium transition-colors duration-[120ms]',
-                isSuspended
-                  ? 'border-brand bg-brand text-brand-ink hover:opacity-90'
-                  : 'border-critical/30 bg-critical-bg text-critical hover:bg-critical/10',
-              )}
+              className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSuspended ? 'Reativar entidade' : 'Suspender'}
+              {isSuspended ? (
+                <RotateCcw size={13} strokeWidth={1.6} />
+              ) : (
+                <Ban size={13} strokeWidth={1.6} />
+              )}
+              {isSuspended ? 'Reativar' : 'Suspender'}
             </button>
 
             <button
               onClick={() => router.push(`/events/new?entityId=${entity.id}`)}
               disabled={isSuspended}
-              className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send size={13} strokeWidth={1.6} />
               Registrar evento
@@ -187,18 +207,18 @@ export default function EntityDetailPage({ params }: PageProps) {
         }
       />
 
-      <div className="flex-1 px-9 py-6 pb-12">
+      <div className="flex-1 overflow-auto px-9 py-6 pb-12">
         {/* Alerts */}
         {isSuspended && (
-          <div className="mb-[18px] flex items-start gap-3 rounded-[10px] border border-critical/20 bg-critical-bg px-4 py-3.5">
+          <div className="mb-4.5 flex items-start gap-3 rounded-md border border-critical/20 bg-critical-bg px-4 py-3.5">
             <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-critical/15 text-critical">
               <XCircle size={12} strokeWidth={1.8} />
             </span>
             <div>
               <div className="text-[13px] font-semibold text-critical">Entidade suspensa</div>
               <div className="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
-                Limite de {CRITICAL_EVENTS_LIMIT} eventos criticos foi atingido em{' '}
-                {formatDateTime(entity.updatedAt)}. Novos eventos serao rejeitados ate reativacao
+                Limite de {CRITICAL_EVENTS_LIMIT} eventos críticos foi atingido em{' '}
+                {formatDateTime(entity.updatedAt)}. Novos eventos serão rejeitados até reativação
                 manual.
               </div>
             </div>
@@ -206,35 +226,35 @@ export default function EntityDetailPage({ params }: PageProps) {
         )}
 
         {isNearLimit && (
-          <div className="mb-[18px] flex items-start gap-3 rounded-[10px] border border-warning/20 bg-warning-bg px-4 py-3.5">
+          <div className="mb-4.5 flex items-start gap-3 rounded-md border border-warning/20 bg-warning-bg px-4 py-3.5">
             <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-warning/15 text-warning">
               <AlertTriangle size={12} strokeWidth={1.8} />
             </span>
             <div>
               <div className="text-[13px] font-semibold text-warning">
-                Proxima do limite critico
+                Próxima do limite crítico
               </div>
               <div className="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
-                {entity.criticalEventsCount} de {CRITICAL_EVENTS_LIMIT} eventos criticos. A proxima
-                ocorrencia critica pode acionar a suspensao automatica.
+                {entity.criticalEventsCount} de {CRITICAL_EVENTS_LIMIT} eventos críticos. A próxima
+                ocorrência crítica pode acionar a suspensão automática.
               </div>
             </div>
           </div>
         )}
 
-        {/* 2-column layout */}
-        <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 320px' }}>
+        {/* 2-column layout — fills remaining viewport */}
+        <div className="grid items-start gap-6" style={{ gridTemplateColumns: '1fr 320px' }}>
           {/* Left column */}
           <div>
             {/* KPIs */}
-            <div className="mb-[18px] grid grid-cols-3 gap-4">
+            <div className="animate-fade-in-up mb-4.5 grid grid-cols-3 gap-4">
               <KpiCard
                 label="Eventos totais"
                 value={entity.totalEvents.toLocaleString('pt-BR')}
                 footer={`desde ${formatDateTime(entity.createdAt).split(',')[0]}`}
               />
               <KpiCard
-                label="Eventos criticos"
+                label="Eventos críticos"
                 value={
                   <>
                     <span
@@ -246,21 +266,21 @@ export default function EntityDetailPage({ params }: PageProps) {
                   </>
                 }
                 footer={
-                  <span className="inline-block w-full max-w-[120px]">
+                  <span className="inline-block w-full max-w-30">
                     <ThreatMeter count={entity.criticalEventsCount} />
                   </span>
                 }
               />
               <KpiCard
-                label="Ultimas 24h"
+                label="Últimas 24h"
                 value={last24hStats.total}
                 footer={
                   <span className="flex gap-3">
                     <span>
-                      <b className="text-critical">{last24hStats.critical}</b> crit
+                      <b className="text-critical">{last24hStats.critical}</b> critical
                     </span>
                     <span>
-                      <b className="text-warning">{last24hStats.warning}</b> warn
+                      <b className="text-warning">{last24hStats.warning}</b> warning
                     </span>
                   </span>
                 }
@@ -271,32 +291,35 @@ export default function EntityDetailPage({ params }: PageProps) {
             <HourlyChart events={events} />
 
             {/* Event history */}
-            <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
-              <div className="flex items-start justify-between border-b border-border px-[18px] py-3.5">
+            <div className="animate-fade-in-up [animation-delay:120ms] overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+              <div className="flex items-start justify-between border-b border-border px-4.5 py-3.5">
                 <div>
-                  <h3 className="text-[14.5px] font-semibold">Historico de eventos</h3>
+                  <h3 className="text-[14.5px] font-semibold">Histórico de eventos</h3>
                   <p className="mt-0.5 text-xs text-text-muted">
                     {pagination?.total ?? events.length} eventos registrados para esta entidade.
                   </p>
                 </div>
               </div>
 
+              {/* Event list or empty */}
               {events.length === 0 ? (
-                <EmptyState
-                  icon={<Activity size={24} strokeWidth={1.6} />}
-                  title="Nenhum evento registrado"
-                  description="Esta entidade ainda nao recebeu nenhum evento desde sua criacao."
-                />
+                <div>
+                  <EmptyState
+                    icon={<Activity size={24} strokeWidth={1.6} />}
+                    title="Nenhum evento registrado"
+                    description="Esta entidade ainda não recebeu nenhum evento desde sua criação."
+                  />
+                </div>
               ) : (
-                <div className="flex flex-col">
-                  {events.slice(0, 12).map((ev) => {
+                <div className="flex min-h-[536px] flex-col">
+                  {pagedEvents.map((ev) => {
                     const isExpanded = expandedEvent === ev.id
 
                     return (
                       <div key={ev.id}>
                         <div
                           onClick={() => setExpandedEvent(isExpanded ? null : ev.id)}
-                          className="grid cursor-pointer items-center gap-3.5 border-b border-border px-[18px] py-3 text-[13px] last:border-b-0 hover:bg-surface-2/30"
+                          className="grid cursor-pointer items-center gap-3.5 border-b border-border px-4.5 py-3 text-[13px] last:border-b-0 hover:bg-surface-2/30"
                           style={{
                             gridTemplateColumns: '80px 32px 1fr auto',
                           }}
@@ -309,7 +332,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                           {/* Severity icon */}
                           <span
                             className={cn(
-                              'grid h-[26px] w-[26px] place-items-center rounded-[7px]',
+                              'grid h-6.5 w-6.5 place-items-center rounded-[7px]',
                               SEVERITY_ICON_STYLES[ev.type],
                             )}
                           >
@@ -342,7 +365,7 @@ export default function EntityDetailPage({ params }: PageProps) {
 
                         {/* Expanded payload */}
                         {isExpanded && (
-                          <div className="pb-4 pl-[130px] pr-[18px]">
+                          <div className="pb-4 pl-32.5 pr-4.5 mt-3">
                             <JsonView data={ev.payload} />
                           </div>
                         )}
@@ -352,22 +375,60 @@ export default function EntityDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              {(pagination?.total ?? 0) > 12 && (
-                <div className="border-t border-border py-3.5 text-center font-mono text-xs text-text-faint">
-                  Exibindo 12 de {pagination?.total} eventos
+              {/* Pagination footer */}
+              {events.length > 0 && (
+                <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                  <span className="font-mono text-xs text-text-faint">
+                    {eventsFrom}–{eventsTo} de {events.length} eventos
+                  </span>
+
+                  {totalEventPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEventPage((p) => p - 1)}
+                        disabled={eventPage === 0}
+                        className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-default disabled:opacity-35 disabled:pointer-events-none"
+                      >
+                        <ChevronLeft size={14} strokeWidth={1.6} />
+                      </button>
+
+                      {Array.from({ length: totalEventPages }, (_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setEventPage(i)}
+                          className={cn(
+                            'inline-flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 font-mono text-xs font-medium transition-colors duration-120',
+                            i === eventPage
+                              ? 'bg-text text-surface'
+                              : 'border border-border bg-surface text-text-muted hover:bg-surface-2 hover:border-border-strong',
+                          )}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => setEventPage((p) => p + 1)}
+                        disabled={eventPage >= totalEventPages - 1}
+                        className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-default disabled:opacity-35 disabled:pointer-events-none"
+                      >
+                        <ChevronRight size={14} strokeWidth={1.6} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right column (sticky sidebar) */}
-          <div className="flex flex-col gap-4 self-start sticky top-[100px]">
+          {/* Right column — aligned to top */}
+          <div className="animate-fade-in-up [animation-delay:60ms] flex flex-col gap-4">
             {/* Identification card */}
-            <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
-              <div className="border-b border-border px-[18px] py-3.5">
-                <h3 className="text-[14.5px] font-semibold">Identificacao</h3>
+            <div className="overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+              <div className="border-b border-border px-4.5 py-3.5">
+                <h3 className="text-[14.5px] font-semibold">Identificação</h3>
               </div>
-              <div className="px-[18px] py-2">
+              <div className="px-4.5 py-2">
                 <ul className="flex flex-col gap-2.5 py-1.5 text-[12.5px]">
                   <li className="flex items-start justify-between gap-3">
                     <span className="text-text-muted">ID</span>
@@ -378,7 +439,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                     <StatusBadge status={entity.status} />
                   </li>
                   <li className="flex items-center justify-between gap-3">
-                    <span className="text-text-muted">Eventos criticos</span>
+                    <span className="text-text-muted">Eventos críticos</span>
                     <span className="font-mono">
                       {entity.criticalEventsCount} / {CRITICAL_EVENTS_LIMIT}
                     </span>
@@ -392,7 +453,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                     <span className="text-[11.5px]">{formatDateTime(entity.updatedAt)}</span>
                   </li>
                   <li className="flex items-center justify-between gap-3">
-                    <span className="text-text-muted">Ultimo evento</span>
+                    <span className="text-text-muted">Último evento</span>
                     <span className="text-[11.5px]">
                       {entity.lastEventAt ? formatRelative(entity.lastEventAt) : '—'}
                     </span>
@@ -402,16 +463,16 @@ export default function EntityDetailPage({ params }: PageProps) {
             </div>
 
             {/* Suspension policy card */}
-            <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
-              <div className="border-b border-border px-[18px] py-3.5">
-                <h3 className="text-[14.5px] font-semibold">Politica de suspensao</h3>
+            <div className="overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+              <div className="border-b border-border px-4.5 py-3.5">
+                <h3 className="text-[14.5px] font-semibold">Política de suspensão</h3>
               </div>
-              <div className="px-[18px] py-3.5">
+              <div className="px-4.5 py-3.5">
                 <p className="text-[12.5px] leading-relaxed text-text-muted">
-                  Esta entidade sera automaticamente suspensa ao atingir{' '}
-                  <b className="text-text">{CRITICAL_EVENTS_LIMIT} eventos criticos</b>. Eventos
-                  rejeitados retornarao{' '}
-                  <code className="rounded bg-surface-2 px-[5px] py-[1px] font-mono text-[11px]">
+                  Esta entidade será automaticamente suspensa ao atingir{' '}
+                  <b className="text-text">{CRITICAL_EVENTS_LIMIT} eventos críticos</b>. Eventos
+                  rejeitados retornarão{' '}
+                  <code className="rounded bg-surface-2 px-1.25 py-px font-mono text-[11px]">
                     409 Conflict
                   </code>{' '}
                   ao cliente.

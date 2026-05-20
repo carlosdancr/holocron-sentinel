@@ -73,7 +73,7 @@ export default function FeedPage() {
     <>
       <PageHeader
         title="Feed em tempo real"
-        subtitle="Stream continuo via Server-Sent Events. Novos eventos sao exibidos sem refresh."
+        subtitle="Stream contínuo via Server-Sent Events. Novos eventos são exibidos sem refresh."
         actions={
           <>
             <LivePill status={pillStatus} />
@@ -100,10 +100,10 @@ export default function FeedPage() {
         }
       />
 
-      <div className="flex-1 px-9 py-6 pb-12">
-        <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden px-9 py-6">
+        <div className="animate-fade-in-up flex min-h-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
           {/* Controls bar */}
-          <div className="flex flex-wrap items-center gap-2.5 border-b border-border px-3.5 py-3">
+          <div className="shrink-0 flex flex-wrap items-center gap-2.5 border-b border-border px-3.5 py-3">
             <ChipGroup
               value={typeFilter}
               onChange={(v) => setTypeFilter(v as 'all' | EventType)}
@@ -124,6 +124,7 @@ export default function FeedPage() {
 
           {/* Feed list ou empty state */}
           {filtered.length === 0 ? (
+            <div className="flex flex-1 min-h-0 items-center justify-center">
             <EmptyState
               icon={<Activity size={24} strokeWidth={1.6} />}
               title={typeFilter === 'all' ? 'Aguardando eventos...' : 'Nenhum evento neste filtro'}
@@ -144,8 +145,9 @@ export default function FeedPage() {
                 ) : undefined
               }
             />
+            </div>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex flex-1 min-h-0 flex-col overflow-auto">
               {filtered.map((item) => {
                 const ev = item.event
                 const isExpanded = expandedPayload === ev.id
@@ -210,7 +212,7 @@ export default function FeedPage() {
 
                     {/* Payload expandido */}
                     {isExpanded && (
-                      <div className="pb-4 pl-[130px] pr-[18px]">
+                      <div className="pb-4 pl-[130px] pr-[18px] mt-3">
                         <JsonView data={ev.payload} />
                       </div>
                     )}
@@ -221,9 +223,9 @@ export default function FeedPage() {
           )}
 
           {/* Scrim footer */}
-          <div className="border-t border-border py-3.5 text-center font-mono text-xs text-text-faint">
-            Buffer limitado a 100 eventos · auto-scroll {paused ? 'pausado' : 'ativo'} · reconexao
-            automatica habilitada
+          <div className="shrink-0 border-t border-border py-3.5 text-center font-mono text-xs text-text-faint">
+            Buffer limitado a 100 eventos · auto-scroll {paused ? 'pausado' : 'ativo'} · reconexão
+            automática habilitada
           </div>
         </div>
       </div>

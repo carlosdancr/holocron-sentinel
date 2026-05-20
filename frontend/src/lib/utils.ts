@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return clsx(inputs)
 }
 
-// Formata data relativa em PT-BR: "agora", "ha 5s", "ha 3min", "ha 2h", "ha 1d", etc.
+// Formata data relativa em PT-BR: "agora", "há 5s", "há 3min", "há 2h", "há 1d", etc.
 export function formatRelative(iso: string | null): string {
   if (!iso) return '-'
 
@@ -15,16 +15,16 @@ export function formatRelative(iso: string | null): string {
   const seconds = Math.floor(diff / 1000)
 
   if (seconds < 5) return 'agora'
-  if (seconds < 60) return `ha ${seconds}s`
+  if (seconds < 60) return `há ${seconds}s`
 
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `ha ${minutes}min`
+  if (minutes < 60) return `há ${minutes}min`
 
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `ha ${hours}h`
+  if (hours < 24) return `há ${hours}h`
 
   const days = Math.floor(hours / 24)
-  if (days < 30) return `ha ${days}d`
+  if (days < 30) return `há ${days}d`
 
   return formatDateTime(iso)
 }

@@ -12,7 +12,10 @@ const app = Fastify({ logger: true })
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
-await app.register(cors, { origin: true })
+await app.register(cors, {
+  origin: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+})
 
 // Registra as rotas
 await app.register(entityRoutes)

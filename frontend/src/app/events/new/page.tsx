@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Send, RefreshCw, Copy, AlertTriangle, Check, X, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
@@ -61,10 +62,11 @@ const TYPE_OPTIONS = [
 // ===== Componente principal =====
 
 export default function EventFormPage() {
+  const searchParams = useSearchParams()
   const { data } = useEntities({ limit: 100 })
   const createEvent = useCreateEvent()
 
-  const [entityId, setEntityId] = useState('')
+  const [entityId, setEntityId] = useState(searchParams.get('entityId') ?? '')
   const [externalId, setExternalId] = useState('')
   const [type, setType] = useState<EventType>('info')
   const [payload, setPayload] = useState(SAMPLE_PAYLOAD)
@@ -83,16 +85,16 @@ export default function EventFormPage() {
   function validate(): FormErrors {
     const errs: FormErrors = {}
     if (!entityId) errs.entity = 'Selecione uma entidade.'
-    if (!externalId.trim()) errs.external = 'external_id e obrigatorio.'
+    if (!externalId.trim()) errs.external = 'external_id é obrigatório.'
     else if (!/^[a-zA-Z0-9_\-:.]+$/.test(externalId))
-      errs.external = 'Use apenas letras, numeros, _ - : .'
+      errs.external = 'Use apenas letras, números, _ - : .'
     try {
       const parsed = JSON.parse(payload)
       if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
         errs.payload = 'Payload deve ser um objeto JSON.'
       }
     } catch (e) {
-      errs.payload = 'JSON invalido: ' + (e instanceof Error ? e.message : 'erro desconhecido')
+      errs.payload = 'JSON inválido: ' + (e instanceof Error ? e.message : 'erro desconhecido')
     }
     return errs
   }
@@ -139,7 +141,7 @@ export default function EventFormPage() {
               eventId: data.event.id,
               externalId: data.event.externalId,
             })
-            toast.warning('Idempotencia aplicada — external_id ja foi processado.')
+            toast.warning('Idempotência aplicada — external_id já foi processado.')
             setSubmissions((prev) => [
               {
                 entityId,
@@ -156,7 +158,7 @@ export default function EventFormPage() {
             toast.success('Evento registrado com sucesso!')
 
             if (data.entitySuspended) {
-              toast.warning('A entidade foi suspensa automaticamente por atingir o limite critico!')
+              toast.warning('A entidade foi suspensa automaticamente por atingir o limite crítico!')
             }
 
             setSubmissions((prev) => [
@@ -221,18 +223,18 @@ export default function EventFormPage() {
         title="Registrar evento"
         subtitle={
           <>
-            Insercao manual para operadores. Submissoes respeitam idempotencia por{' '}
+            Inserção manual para operadores. Submissões respeitam idempotência por{' '}
             <code className="rounded bg-surface-2 px-1 py-px font-mono text-xs">external_id</code>.
           </>
         }
       />
 
-      <div className="flex-1 px-9 py-6 pb-12">
+      <div className="flex-1 overflow-auto px-9 py-6 pb-12">
         <div className="grid grid-cols-[1fr_360px] items-start gap-6">
           {/* Card do formulario */}
-          <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
+          <div className="animate-fade-in-up overflow-hidden rounded-md border border-border bg-surface shadow-sm">
             {/* Card header */}
-            <div className="flex items-center justify-between gap-4 border-b border-border px-[18px] py-4">
+            <div className="flex items-center justify-between gap-4 border-b border-border px-4.5 py-4">
               <div>
                 <div className="text-sm font-semibold tracking-[-0.01em]">Novo evento</div>
                 <div className="mt-0.5 text-[12.5px] text-text-muted">
@@ -242,13 +244,13 @@ export default function EventFormPage() {
               <button
                 type="button"
                 onClick={handleClear}
-                className="inline-flex h-7 items-center rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2"
+                className="inline-flex h-7 items-center rounded-sm border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-120 hover:bg-surface-2"
               >
                 Limpar
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid gap-4 p-[18px]">
+            <form onSubmit={handleSubmit} className="grid gap-4 p-4.5">
               {/* Banners de resultado */}
               {lastResult?.kind === 'success' && (
                 <ResultAlert
@@ -305,7 +307,7 @@ export default function EventFormPage() {
                 </label>
                 <select
                   className={cn(
-                    "h-[38px] w-full appearance-none rounded-lg border bg-surface bg-[url('data:image/svg+xml,%3Csvg%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%20fill=%22none%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M3%204.5L6%207.5L9%204.5%22%20stroke=%22%236B6B63%22%20stroke-width=%221.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E')] bg-[right_12px_center] bg-no-repeat px-3 pr-8 text-[13.5px] outline-none transition-[border-color,box-shadow] duration-[120ms] focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]",
+                    "h-9.5 w-full appearance-none rounded-lg border bg-surface bg-[url('data:image/svg+xml,%3Csvg%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%20fill=%22none%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M3%204.5L6%207.5L9%204.5%22%20stroke=%22%236B6B63%22%20stroke-width=%221.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E')] bg-position-[right_12px_center] bg-no-repeat px-3 pr-8 text-[13.5px] outline-none transition-[border-color,box-shadow] duration-120 focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]",
                     errors.entity ? 'border-critical' : 'border-border',
                   )}
                   value={entityId}
@@ -352,7 +354,7 @@ export default function EventFormPage() {
                   <input
                     type="text"
                     className={cn(
-                      'h-[38px] flex-1 rounded-lg border bg-surface px-3 font-mono text-[13px] outline-none transition-[border-color,box-shadow] duration-[120ms] focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]',
+                      'h-9.5 flex-1 rounded-lg border bg-surface px-3 font-mono text-[13px] outline-none transition-[border-color,box-shadow] duration-120 focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]',
                       errors.external ? 'border-critical' : 'border-border',
                     )}
                     placeholder="ext_ab9f3..."
@@ -363,7 +365,7 @@ export default function EventFormPage() {
                     type="button"
                     onClick={genExternalId}
                     title="Gerar ID aleatorio"
-                    className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-lg border border-border bg-surface transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong"
+                    className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-lg border border-border bg-surface transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong"
                   >
                     <RefreshCw size={13} strokeWidth={1.6} />
                   </button>
@@ -372,7 +374,7 @@ export default function EventFormPage() {
                   <FieldError message={errors.external} />
                 ) : (
                   <p className="text-[11.5px] text-text-muted">
-                    Use o mesmo external_id apenas se quiser deduplicar uma re-submissao.
+                    Use o mesmo external_id apenas se quiser deduplicar uma re-submissão.
                   </p>
                 )}
               </div>
@@ -387,9 +389,9 @@ export default function EventFormPage() {
                     <label
                       key={opt.value}
                       className={cn(
-                        'flex cursor-pointer items-center gap-2.5 rounded-lg border bg-surface px-3 py-2.5 transition-[border-color,background,box-shadow] duration-[120ms]',
+                        'flex cursor-pointer items-center gap-2.5 rounded-lg border bg-surface px-3 py-2.5 transition-[border-color,background,box-shadow] duration-120',
                         type === opt.value
-                          ? 'border-text shadow-[0_0_0_1px_var(--color-text)]'
+                          ? 'border-brand shadow-[0_0_0_1px_var(--color-brand)]'
                           : 'border-border hover:border-border-strong',
                       )}
                     >
@@ -419,7 +421,7 @@ export default function EventFormPage() {
                 </label>
                 <textarea
                   className={cn(
-                    'min-h-[120px] resize-y rounded-lg border bg-surface px-3 py-2.5 font-mono text-[12.5px] leading-[1.55] outline-none transition-[border-color,box-shadow] duration-[120ms] focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]',
+                    'min-h-30 resize-y rounded-lg border bg-surface px-3 py-2.5 font-mono text-[12.5px] leading-[1.55] outline-none transition-[border-color,box-shadow] duration-120 focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]',
                     errors.payload ? 'border-critical' : 'border-border',
                   )}
                   value={payload}
@@ -443,16 +445,16 @@ export default function EventFormPage() {
                     type="button"
                     onClick={handleReuseLastSubmission}
                     disabled={submissions.length === 0}
-                    title="Reusar dados da ultima submissao (para testar idempotencia)"
-                    className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Reusar dados da última submissão (para testar idempotência)"
+                    className="inline-flex h-8.5 items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Copy size={13} strokeWidth={1.6} />
-                    Reusar ultimo
+                    Reusar último
                   </button>
                   <button
                     type="submit"
                     disabled={createEvent.isPending || entitySuspended}
-                    className="inline-flex h-[34px] items-center gap-[7px] rounded-lg bg-brand px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-[120ms] hover:bg-[#F7DC0E] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex h-8.5 items-center gap-1.75 rounded-lg bg-brand px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-120 hover:bg-[#F7DC0E] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {createEvent.isPending ? (
                       <Loader2 size={13} className="animate-spin" />
@@ -467,17 +469,17 @@ export default function EventFormPage() {
           </div>
 
           {/* Sidebar: submissoes recentes + idempotencia */}
-          <div className="flex flex-col gap-4">
+          <div className="animate-fade-in-up [animation-delay:60ms] flex flex-col gap-4">
             {/* Submissoes recentes */}
-            <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
-              <div className="border-b border-border px-[18px] py-4">
-                <div className="text-sm font-semibold tracking-[-0.01em]">Submissoes recentes</div>
+            <div className="overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+              <div className="border-b border-border px-4.5 py-4">
+                <div className="text-sm font-semibold tracking-[-0.01em]">Submissões recentes</div>
               </div>
               {submissions.length === 0 ? (
                 <EmptyState
                   icon={<Send size={24} strokeWidth={1.6} />}
-                  title="Nenhuma submissao"
-                  description="Os eventos enviados nesta sessao aparecerão aqui."
+                  title="Nenhuma submissão"
+                  description="Os eventos enviados nesta sessão aparecerão aqui."
                 />
               ) : (
                 <div>
@@ -485,7 +487,7 @@ export default function EventFormPage() {
                     <div
                       key={`${s.externalId}-${i}`}
                       className={cn(
-                        'px-[18px] py-2.5 text-[12.5px]',
+                        'px-4.5 py-2.5 text-[12.5px]',
                         i > 0 && 'border-t border-border',
                       )}
                     >
@@ -494,7 +496,7 @@ export default function EventFormPage() {
                           <TypeBadge type={s.type} />
                           {s.result === 'duplicate' && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-px text-[11px] font-medium text-warning">
-                              dup
+                              duplicado
                             </span>
                           )}
                           {s.result === 'suspended' && (
@@ -517,27 +519,27 @@ export default function EventFormPage() {
             </div>
 
             {/* Card idempotencia */}
-            <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
-              <div className="border-b border-border px-[18px] py-4">
+            <div className="overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+              <div className="border-b border-border px-4.5 py-4">
                 <div className="text-sm font-semibold tracking-[-0.01em]">
-                  Como funciona a idempotencia
+                  Como funciona a idempotência
                 </div>
               </div>
-              <div className="space-y-2.5 px-[18px] py-4 text-[12.5px] leading-relaxed text-text-muted">
+              <div className="space-y-2.5 px-4.5 py-4 text-[12.5px] leading-relaxed text-text-muted">
                 <p>
                   Cada{' '}
                   <code className="rounded bg-surface-2 px-1 py-px font-mono text-xs text-text">
                     external_id
                   </code>{' '}
-                  e unico por entidade. Re-submissoes retornam o registro original sem efeitos
+                  é único por entidade. Re-submissões retornam o registro original sem efeitos
                   colaterais.
                 </p>
                 <p>
                   Eventos do tipo <strong className="text-critical">critical</strong> incrementam o
-                  contador atomicamente. Ao atingir o limite ({CRITICAL_EVENTS_LIMIT}), a entidade e
-                  suspensa na mesma transacao.
+                  contador atomicamente. Ao atingir o limite ({CRITICAL_EVENTS_LIMIT}), a entidade é
+                  suspensa na mesma transação.
                 </p>
-                <p>Tente reenviar o mesmo external_id para ver a resposta de deduplicacao.</p>
+                <p>Tente reenviar o mesmo external_id para ver a resposta de deduplicação.</p>
               </div>
             </div>
           </div>
@@ -574,10 +576,7 @@ function ResultAlert({
 
   return (
     <div
-      className={cn(
-        'flex items-start gap-3 rounded-[10px] border p-3.5 text-[13px]',
-        styles[variant],
-      )}
+      className={cn('flex items-start gap-3 rounded-md border p-3.5 text-[13px]', styles[variant])}
     >
       <span
         className={cn(

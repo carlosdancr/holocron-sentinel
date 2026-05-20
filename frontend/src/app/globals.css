@@ -41,6 +41,9 @@
   /* Tipografia — referencia as CSS vars das fontes do Next.js */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Animacao de entrada */
+  --animate-fade-in-up: fade-in-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 /* ===== Base ===== */
@@ -153,6 +156,17 @@ body {
 .json-block .b {
   color: #b45309;
 } /* booleans/null (ambar) */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* ===== Feed row — animacao de novo evento ===== */
 

@@ -17,7 +17,7 @@ interface ChipGroupProps {
 
 export function ChipGroup({ options, value, onChange }: ChipGroupProps) {
   return (
-    <div className="flex gap-1 rounded-lg border border-border bg-surface-2 p-0.5">
+    <div className="flex gap-1 rounded-[6px] border border-border bg-surface-2 p-0.5">
       {options.map((option) => (
         <button
           key={option.value}
@@ -25,7 +25,7 @@ export function ChipGroup({ options, value, onChange }: ChipGroupProps) {
           disabled={option.disabled}
           onClick={() => onChange(option.value)}
           className={cn(
-            'inline-flex h-7 items-center gap-1.5 rounded-[6px] px-2.5 text-[12.5px] font-medium text-text-muted transition-[background,color,box-shadow] duration-[120ms]',
+            'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-[4px] px-2.5 text-[12.5px] font-medium text-text-muted transition-[background,color,box-shadow] duration-[120ms]',
             value === option.value && 'bg-surface text-text shadow-sm',
             value !== option.value && !option.disabled && 'hover:text-text',
             option.disabled && 'opacity-40 cursor-not-allowed',

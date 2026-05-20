@@ -14,6 +14,7 @@ export function useToggleEntityStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entities'] })
+      queryClient.invalidateQueries({ queryKey: ['entity'] })
       queryClient.invalidateQueries({ queryKey: ['ranking'] })
     },
   })
