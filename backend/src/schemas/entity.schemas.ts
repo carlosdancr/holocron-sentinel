@@ -12,6 +12,12 @@ export const listEntitiesSchema = z.object({
   status: z.enum(['active', 'suspended']).optional(),
 })
 
+// Schema para params de rota que recebem :id
+export const entityParamsSchema = z.object({
+  id: z.uuid(),
+})
+
 // Tipos inferidos automaticamente — não precisa escrever interfaces na mão!
 export type CreateEntityInput = z.infer<typeof createEntitySchema>
 export type ListEntitiesInput = z.infer<typeof listEntitiesSchema>
+export type EntityParams = z.infer<typeof entityParamsSchema>

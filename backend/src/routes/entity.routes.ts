@@ -1,7 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { EntityService } from '../services/entity.service.js'
-import { createEntitySchema, listEntitiesSchema } from '../schemas/entity.schemas.js'
+import {
+  createEntitySchema,
+  entityParamsSchema,
+  listEntitiesSchema,
+} from '../schemas/entity.schemas.js'
 
 const entityService = new EntityService()
 
@@ -27,4 +31,24 @@ export async function entityRoutes(app: FastifyInstance) {
 
     return result
   })
+
+  // GET /entities/:id — detalhe de uma entidade
+  typedApp.get(
+    '/entities/:id',
+    {
+      schema: {
+        params: entityParamsSchema,
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params
+      const entity = await entityService.findById(id)
+
+      if (!entity) {
+        return reply.status(404).send({ error: 'Entidade não encontrada.' })
+      }
+
+      return reply.send(entity)
+    },
+  )
 }

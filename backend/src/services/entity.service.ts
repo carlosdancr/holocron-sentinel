@@ -156,4 +156,48 @@ export class EntityService {
       })),
     }
   }
+
+  async findById(id: string) {
+    const result = await prisma.$queryRaw<
+      Array<{
+        id: string
+        name: string
+        status: string
+        critical_events_count: number
+        created_at: Date
+        updated_at: Date
+        total_events: bigint
+        total_critical_events: bigint
+        last_event_at: Date | null
+      }>
+    >`
+    SELECT
+      e.id,
+      e.name,
+      e.status,
+      e.critical_events_count,
+      e.created_at,
+      e.updated_at,
+      (SELECT COUNT(*) FROM events ev WHERE ev.entity_id = e.id) AS total_events,
+      (SELECT COUNT(*) FROM events ev WHERE ev.entity_id = e.id AND ev.type = 'critical') AS total_critical_events,
+      (SELECT MAX(ev.created_at) FROM events ev WHERE ev.entity_id = e.id) AS last_event_at
+    FROM entities e
+    WHERE e.id = ${id}
+  `
+
+    if (result.length === 0) return null
+
+    const row = result[0]
+    return {
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      criticalEventsCount: row.critical_events_count,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      totalEvents: Number(row.total_events),
+      totalCriticalEvents: Number(row.total_critical_events),
+      lastEventAt: row.last_event_at,
+    }
+  }
 }
