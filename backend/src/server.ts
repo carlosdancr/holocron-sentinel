@@ -4,6 +4,7 @@ import cors from '@fastify/cors'
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
 import { entityRoutes } from './routes/entity.routes.js'
 import { eventRoutes } from './routes/event.routes.js'
+import { rankingRoutes } from './routes/ranking.routes.js'
 
 const app = Fastify({ logger: true })
 
@@ -15,6 +16,7 @@ await app.register(cors, { origin: true })
 // Registra as rotas
 await app.register(entityRoutes)
 await app.register(eventRoutes)
+await app.register(rankingRoutes)
 
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() }

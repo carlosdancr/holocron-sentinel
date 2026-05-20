@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js'
 import type { CreateEntityInput, ListEntitiesInput } from '../schemas/entity.schemas.js'
-
+import type { RankingInput } from '../schemas/ranking.schemas.js'
 export class EntityService {
   /**
    * Cria uma nova entidade monitorada.
@@ -94,6 +94,66 @@ export class EntityService {
         total,
         totalPages: Math.ceil(total / limit),
       },
+    }
+  }
+
+  /**
+   * Retorna as entidades com mais eventos críticos nos últimos 7 dias.
+   *
+   * Por que não usar o critical_events_count da tabela entities?
+   * Porque ele é o total de TODOS os tempos. O ranking precisa dos últimos 7 dias.
+   *
+   * A query faz:
+   * 1. Filtra eventos do tipo 'critical' dos últimos 7 dias
+   * 2. Agrupa por entidade (GROUP BY)
+   * 3. Conta quantos eventos cada entidade teve
+   * 4. Ordena do mais crítico para o menos (ORDER BY DESC)
+   *
+   * O índice (type, created_at) criado na Fase 2 é usado aqui — o PostgreSQL
+   * primeiro filtra pelo type = 'critical' e depois pelo range de datas,
+   * tudo via índice, sem full table scan.
+   */
+  async ranking(input: RankingInput) {
+    const { limit } = input
+
+    const result = await prisma.$queryRawUnsafe<
+      Array<{
+        id: string
+        name: string
+        status: string
+        critical_events_count: number
+        recent_critical_count: bigint
+        last_critical_event_at: Date | null
+      }>
+    >(
+      `
+      SELECT
+        e.id,
+        e.name,
+        e.status,
+        e.critical_events_count,
+        COUNT(ev.id) AS recent_critical_count,
+        MAX(ev.created_at) AS last_critical_event_at
+      FROM entities e
+      INNER JOIN events ev ON ev.entity_id = e.id
+        AND ev.type = 'critical'
+        AND ev.created_at >= NOW() - INTERVAL '7 days'
+      GROUP BY e.id, e.name, e.status, e.critical_events_count
+      ORDER BY recent_critical_count DESC
+      LIMIT $1
+      `,
+      limit,
+    )
+
+    return {
+      data: result.map((entity) => ({
+        id: entity.id,
+        name: entity.name,
+        status: entity.status,
+        criticalEventsCount: Number(entity.critical_events_count),
+        recentCriticalCount: Number(entity.recent_critical_count),
+        lastCriticalEventAt: entity.last_critical_event_at,
+      })),
     }
   }
 }
