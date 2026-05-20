@@ -6,9 +6,10 @@ interface KpiCardProps {
   value: ReactNode
   footer?: ReactNode
   hero?: boolean
+  valueClassName?: string
 }
 
-export function KpiCard({ label, value, footer, hero = false }: KpiCardProps) {
+export function KpiCard({ label, value, footer, hero = false, valueClassName }: KpiCardProps) {
   return (
     <div
       className={cn(
@@ -27,7 +28,7 @@ export function KpiCard({ label, value, footer, hero = false }: KpiCardProps) {
         {label}
       </span>
 
-      <div className="mt-1.5 text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
+      <div className={cn("mt-1.5 text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums", valueClassName)}>
         {value}
       </div>
 
