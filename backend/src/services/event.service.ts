@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js'
 import { CRITICAL_EVENTS_LIMIT } from '../config/constants.js'
 import type { CreateEventInput } from '../schemas/event.schemas.js'
+import { eventBus } from '../lib/event-bus.js'
 
 // Tipo para o resultado — pode ser "created" (novo) ou "duplicate" (já existia)
 interface EventResult {
@@ -135,6 +136,15 @@ export class EventService {
         entitySuspended,
       }
     })
+
+    // ─── PASSO 3: Emitir no barramento para clientes SSE ───
+    // Só emite se o evento foi realmente criado (não para duplicatas)
+    if (result.status === 'created') {
+      eventBus.emit('new-event', {
+        event: result.event,
+        entitySuspended: result.entitySuspended,
+      })
+    }
 
     return result
   }

@@ -5,6 +5,7 @@ import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod
 import { entityRoutes } from './routes/entity.routes.js'
 import { eventRoutes } from './routes/event.routes.js'
 import { rankingRoutes } from './routes/ranking.routes.js'
+import { streamRoutes } from './routes/stream.routes.js'
 
 const app = Fastify({ logger: true })
 
@@ -17,6 +18,7 @@ await app.register(cors, { origin: true })
 await app.register(entityRoutes)
 await app.register(eventRoutes)
 await app.register(rankingRoutes)
+await app.register(streamRoutes)
 
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() }
