@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo } from 'react'
 import {
   AreaChart,
   Area,
@@ -50,7 +50,15 @@ function buildBuckets(events: Event[]): HourlyBucket[] {
 
 // ===== Custom Tooltip =====
 
-function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; payload: HourlyBucket }>; label?: string }) {
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: Array<{ value: number; payload: HourlyBucket }>
+  label?: string
+}) {
   if (!active || !payload?.length) return null
 
   const bucket = payload[0]?.payload
@@ -100,9 +108,7 @@ export function HourlyChart({ events }: HourlyChartProps) {
       <div className="flex items-start justify-between border-b border-border px-[18px] py-3.5">
         <div>
           <h3 className="text-[14.5px] font-semibold">Atividade (ultimas 24h)</h3>
-          <p className="mt-0.5 text-xs text-text-muted">
-            Volume total de eventos por hora.
-          </p>
+          <p className="mt-0.5 text-xs text-text-muted">Volume total de eventos por hora.</p>
         </div>
         <div className="flex items-center gap-5">
           <div className="text-right">
@@ -121,9 +127,7 @@ export function HourlyChart({ events }: HourlyChartProps) {
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
               Warning
             </div>
-            <div className="text-[15px] font-semibold tabular-nums text-warning">
-              {warnLast24h}
-            </div>
+            <div className="text-[15px] font-semibold tabular-nums text-warning">{warnLast24h}</div>
           </div>
           <div className="text-right">
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
@@ -160,7 +164,11 @@ export function HourlyChart({ events }: HourlyChartProps) {
               dataKey="label"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10.5, fill: 'var(--color-text-faint)', fontFamily: 'var(--font-mono)' }}
+              tick={{
+                fontSize: 10.5,
+                fill: 'var(--color-text-faint)',
+                fontFamily: 'var(--font-mono)',
+              }}
               ticks={visibleTicks}
               interval="preserveStartEnd"
             />
@@ -168,7 +176,11 @@ export function HourlyChart({ events }: HourlyChartProps) {
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10.5, fill: 'var(--color-text-faint)', fontFamily: 'var(--font-mono)' }}
+              tick={{
+                fontSize: 10.5,
+                fill: 'var(--color-text-faint)',
+                fontFamily: 'var(--font-mono)',
+              }}
               allowDecimals={false}
             />
 

@@ -14,9 +14,7 @@ export function KpiCard({ label, value, footer, hero = false, valueClassName }: 
     <div
       className={cn(
         'relative overflow-hidden rounded-[10px] border px-[18px] py-4',
-        hero
-          ? 'border-transparent bg-brand text-brand-ink'
-          : 'border-border bg-surface',
+        hero ? 'border-transparent bg-brand text-brand-ink' : 'border-border bg-surface',
       )}
     >
       <span
@@ -28,7 +26,12 @@ export function KpiCard({ label, value, footer, hero = false, valueClassName }: 
         {label}
       </span>
 
-      <div className={cn("mt-1.5 text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums", valueClassName)}>
+      <div
+        className={cn(
+          'mt-1.5 text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums',
+          valueClassName,
+        )}
+      >
         {value}
       </div>
 

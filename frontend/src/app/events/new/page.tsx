@@ -141,7 +141,14 @@ export default function EventFormPage() {
             })
             toast.warning('Idempotencia aplicada — external_id ja foi processado.')
             setSubmissions((prev) => [
-              { entityId, entityName, externalId, type, result: 'duplicate', at: new Date().toISOString() },
+              {
+                entityId,
+                entityName,
+                externalId,
+                type,
+                result: 'duplicate',
+                at: new Date().toISOString(),
+              },
               ...prev.slice(0, 19),
             ])
           } else {
@@ -153,7 +160,14 @@ export default function EventFormPage() {
             }
 
             setSubmissions((prev) => [
-              { entityId, entityName, externalId, type, result: 'success', at: new Date().toISOString() },
+              {
+                entityId,
+                entityName,
+                externalId,
+                type,
+                result: 'success',
+                at: new Date().toISOString(),
+              },
               ...prev.slice(0, 19),
             ])
 
@@ -171,14 +185,28 @@ export default function EventFormPage() {
             setLastResult({ kind: 'suspended', message })
             toast.error('Entidade suspensa — evento rejeitado.')
             setSubmissions((prev) => [
-              { entityId, entityName, externalId, type, result: 'suspended', at: new Date().toISOString() },
+              {
+                entityId,
+                entityName,
+                externalId,
+                type,
+                result: 'suspended',
+                at: new Date().toISOString(),
+              },
               ...prev.slice(0, 19),
             ])
           } else {
             setLastResult({ kind: 'error', message })
             toast.error(message)
             setSubmissions((prev) => [
-              { entityId, entityName, externalId, type, result: 'error', at: new Date().toISOString() },
+              {
+                entityId,
+                entityName,
+                externalId,
+                type,
+                result: 'error',
+                at: new Date().toISOString(),
+              },
               ...prev.slice(0, 19),
             ])
           }
@@ -230,7 +258,9 @@ export default function EventFormPage() {
                   description={
                     <>
                       ID interno{' '}
-                      <code className="font-mono font-semibold">{lastResult.eventId?.slice(0, 8)}</code>
+                      <code className="font-mono font-semibold">
+                        {lastResult.eventId?.slice(0, 8)}
+                      </code>
                     </>
                   }
                 />
@@ -247,7 +277,9 @@ export default function EventFormPage() {
                         external_id={lastResult.externalId}
                       </code>{' '}
                       ja foi processado. Retornando o registro existente{' '}
-                      <code className="font-mono font-semibold">{lastResult.eventId?.slice(0, 8)}</code>{' '}
+                      <code className="font-mono font-semibold">
+                        {lastResult.eventId?.slice(0, 8)}
+                      </code>{' '}
                       sem efeitos colaterais.
                     </>
                   }
@@ -273,7 +305,7 @@ export default function EventFormPage() {
                 </label>
                 <select
                   className={cn(
-                    'h-[38px] w-full appearance-none rounded-lg border bg-surface bg-[url(\'data:image/svg+xml,%3Csvg%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%20fill=%22none%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M3%204.5L6%207.5L9%204.5%22%20stroke=%22%236B6B63%22%20stroke-width=%221.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E\')] bg-[right_12px_center] bg-no-repeat px-3 pr-8 text-[13.5px] outline-none transition-[border-color,box-shadow] duration-[120ms] focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]',
+                    "h-[38px] w-full appearance-none rounded-lg border bg-surface bg-[url('data:image/svg+xml,%3Csvg%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%20fill=%22none%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M3%204.5L6%207.5L9%204.5%22%20stroke=%22%236B6B63%22%20stroke-width=%221.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E')] bg-[right_12px_center] bg-no-repeat px-3 pr-8 text-[13.5px] outline-none transition-[border-color,box-shadow] duration-[120ms] focus:border-text focus:shadow-[0_0_0_3px_rgba(15,17,21,0.06)]",
                     errors.entity ? 'border-critical' : 'border-border',
                   )}
                   value={entityId}
@@ -403,8 +435,8 @@ export default function EventFormPage() {
 
               <div className="flex items-center justify-between">
                 <p className="text-[11.5px] text-text-muted">
-                  O endpoint{' '}
-                  <code className="font-mono text-xs">POST /events</code> aceita esta carga.
+                  O endpoint <code className="font-mono text-xs">POST /events</code> aceita esta
+                  carga.
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -501,8 +533,7 @@ export default function EventFormPage() {
                   colaterais.
                 </p>
                 <p>
-                  Eventos do tipo{' '}
-                  <strong className="text-critical">critical</strong> incrementam o
+                  Eventos do tipo <strong className="text-critical">critical</strong> incrementam o
                   contador atomicamente. Ao atingir o limite ({CRITICAL_EVENTS_LIMIT}), a entidade e
                   suspensa na mesma transacao.
                 </p>
@@ -542,7 +573,12 @@ function ResultAlert({
   }
 
   return (
-    <div className={cn('flex items-start gap-3 rounded-[10px] border p-3.5 text-[13px]', styles[variant])}>
+    <div
+      className={cn(
+        'flex items-start gap-3 rounded-[10px] border p-3.5 text-[13px]',
+        styles[variant],
+      )}
+    >
       <span
         className={cn(
           'mt-px grid h-5 w-5 shrink-0 place-items-center rounded-full text-white',

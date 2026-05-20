@@ -16,10 +16,5 @@ interface JsonViewProps {
 }
 
 export function JsonView({ data }: JsonViewProps) {
-  return (
-    <pre
-      className="json-block"
-      dangerouslySetInnerHTML={{ __html: highlightJson(data) }}
-    />
-  )
+  return <pre className="json-block" dangerouslySetInnerHTML={{ __html: highlightJson(data) }} />
 }

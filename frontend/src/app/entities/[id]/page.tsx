@@ -62,7 +62,7 @@ export default function EntityDetailPage({ params }: PageProps) {
   const { data: eventsData } = useEntityEvents({ entityId: id, page: 1, limit: 100 })
   const toggleStatus = useToggleEntityStatus()
 
-  const events = eventsData?.data ?? []
+  const events = useMemo(() => eventsData?.data ?? [], [eventsData])
   const pagination = eventsData?.pagination
 
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null)
@@ -70,15 +70,14 @@ export default function EntityDetailPage({ params }: PageProps) {
   // Derivados
   const isSuspended = entity?.status === 'suspended'
   const isNearLimit =
-    !isSuspended &&
-    (entity?.criticalEventsCount ?? 0) >= CRITICAL_EVENTS_LIMIT * 0.7
+    !isSuspended && (entity?.criticalEventsCount ?? 0) >= CRITICAL_EVENTS_LIMIT * 0.7
 
   // Eventos das ultimas 24h (para KPI)
   const last24hStats = useMemo(() => {
-    const now = Date.now()
-    const last24h = events.filter(
-      (ev) => now - new Date(ev.createdAt).getTime() < 24 * 3600 * 1000,
-    )
+    const cutoff = new Date()
+    cutoff.setHours(cutoff.getHours() - 24)
+    const cutoffTime = cutoff.getTime()
+    const last24h = events.filter((ev) => new Date(ev.createdAt).getTime() > cutoffTime)
     return {
       total: last24h.length,
       critical: last24h.filter((ev) => ev.type === 'critical').length,
@@ -144,10 +143,7 @@ export default function EntityDetailPage({ params }: PageProps) {
         title={entity.name}
         breadcrumb={
           <>
-            <button
-              onClick={() => router.push('/')}
-              className="hover:text-text transition-colors"
-            >
+            <button onClick={() => router.push('/')} className="hover:text-text transition-colors">
               Dashboard
             </button>
             <span className="mx-1.5 text-text-faint">/</span>
@@ -199,13 +195,11 @@ export default function EntityDetailPage({ params }: PageProps) {
               <XCircle size={12} strokeWidth={1.8} />
             </span>
             <div>
-              <div className="text-[13px] font-semibold text-critical">
-                Entidade suspensa
-              </div>
+              <div className="text-[13px] font-semibold text-critical">Entidade suspensa</div>
               <div className="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
-                Limite de {CRITICAL_EVENTS_LIMIT} eventos criticos foi atingido
-                em {formatDateTime(entity.updatedAt)}. Novos eventos serao
-                rejeitados ate reativacao manual.
+                Limite de {CRITICAL_EVENTS_LIMIT} eventos criticos foi atingido em{' '}
+                {formatDateTime(entity.updatedAt)}. Novos eventos serao rejeitados ate reativacao
+                manual.
               </div>
             </div>
           </div>
@@ -221,19 +215,15 @@ export default function EntityDetailPage({ params }: PageProps) {
                 Proxima do limite critico
               </div>
               <div className="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
-                {entity.criticalEventsCount} de {CRITICAL_EVENTS_LIMIT} eventos
-                criticos. A proxima ocorrencia critica pode acionar a suspensao
-                automatica.
+                {entity.criticalEventsCount} de {CRITICAL_EVENTS_LIMIT} eventos criticos. A proxima
+                ocorrencia critica pode acionar a suspensao automatica.
               </div>
             </div>
           </div>
         )}
 
         {/* 2-column layout */}
-        <div
-          className="grid gap-6"
-          style={{ gridTemplateColumns: '1fr 320px' }}
-        >
+        <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 320px' }}>
           {/* Left column */}
           <div>
             {/* KPIs */}
@@ -248,17 +238,11 @@ export default function EntityDetailPage({ params }: PageProps) {
                 value={
                   <>
                     <span
-                      className={cn(
-                        isSuspended && 'text-critical',
-                        isNearLimit && 'text-warning',
-                      )}
+                      className={cn(isSuspended && 'text-critical', isNearLimit && 'text-warning')}
                     >
                       {entity.criticalEventsCount}
                     </span>
-                    <span className="text-[18px] opacity-50">
-                      {' '}
-                      / {CRITICAL_EVENTS_LIMIT}
-                    </span>
+                    <span className="text-[18px] opacity-50"> / {CRITICAL_EVENTS_LIMIT}</span>
                   </>
                 }
                 footer={
@@ -273,12 +257,10 @@ export default function EntityDetailPage({ params }: PageProps) {
                 footer={
                   <span className="flex gap-3">
                     <span>
-                      <b className="text-critical">{last24hStats.critical}</b>{' '}
-                      crit
+                      <b className="text-critical">{last24hStats.critical}</b> crit
                     </span>
                     <span>
-                      <b className="text-warning">{last24hStats.warning}</b>{' '}
-                      warn
+                      <b className="text-warning">{last24hStats.warning}</b> warn
                     </span>
                   </span>
                 }
@@ -292,12 +274,9 @@ export default function EntityDetailPage({ params }: PageProps) {
             <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
               <div className="flex items-start justify-between border-b border-border px-[18px] py-3.5">
                 <div>
-                  <h3 className="text-[14.5px] font-semibold">
-                    Historico de eventos
-                  </h3>
+                  <h3 className="text-[14.5px] font-semibold">Historico de eventos</h3>
                   <p className="mt-0.5 text-xs text-text-muted">
-                    {pagination?.total ?? events.length} eventos registrados
-                    para esta entidade.
+                    {pagination?.total ?? events.length} eventos registrados para esta entidade.
                   </p>
                 </div>
               </div>
@@ -316,9 +295,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                     return (
                       <div key={ev.id}>
                         <div
-                          onClick={() =>
-                            setExpandedEvent(isExpanded ? null : ev.id)
-                          }
+                          onClick={() => setExpandedEvent(isExpanded ? null : ev.id)}
                           className="grid cursor-pointer items-center gap-3.5 border-b border-border px-[18px] py-3 text-[13px] last:border-b-0 hover:bg-surface-2/30"
                           style={{
                             gridTemplateColumns: '80px 32px 1fr auto',
@@ -342,8 +319,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                           {/* Body */}
                           <div className="min-w-0">
                             <div className="font-medium">
-                              Evento{' '}
-                              <span className="capitalize">{ev.type}</span>
+                              Evento <span className="capitalize">{ev.type}</span>
                               <span className="ml-2 font-mono text-[11.5px] font-normal text-text-faint">
                                 {ev.id}
                               </span>
@@ -395,9 +371,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                 <ul className="flex flex-col gap-2.5 py-1.5 text-[12.5px]">
                   <li className="flex items-start justify-between gap-3">
                     <span className="text-text-muted">ID</span>
-                    <span className="truncate font-mono text-[11.5px] text-right">
-                      {entity.id}
-                    </span>
+                    <span className="truncate font-mono text-[11.5px] text-right">{entity.id}</span>
                   </li>
                   <li className="flex items-center justify-between gap-3">
                     <span className="text-text-muted">Status</span>
@@ -411,22 +385,16 @@ export default function EntityDetailPage({ params }: PageProps) {
                   </li>
                   <li className="flex items-center justify-between gap-3">
                     <span className="text-text-muted">Criada em</span>
-                    <span className="text-[11.5px]">
-                      {formatDateTime(entity.createdAt)}
-                    </span>
+                    <span className="text-[11.5px]">{formatDateTime(entity.createdAt)}</span>
                   </li>
                   <li className="flex items-center justify-between gap-3">
                     <span className="text-text-muted">Atualizada em</span>
-                    <span className="text-[11.5px]">
-                      {formatDateTime(entity.updatedAt)}
-                    </span>
+                    <span className="text-[11.5px]">{formatDateTime(entity.updatedAt)}</span>
                   </li>
                   <li className="flex items-center justify-between gap-3">
                     <span className="text-text-muted">Ultimo evento</span>
                     <span className="text-[11.5px]">
-                      {entity.lastEventAt
-                        ? formatRelative(entity.lastEventAt)
-                        : '—'}
+                      {entity.lastEventAt ? formatRelative(entity.lastEventAt) : '—'}
                     </span>
                   </li>
                 </ul>
@@ -436,17 +404,13 @@ export default function EntityDetailPage({ params }: PageProps) {
             {/* Suspension policy card */}
             <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
               <div className="border-b border-border px-[18px] py-3.5">
-                <h3 className="text-[14.5px] font-semibold">
-                  Politica de suspensao
-                </h3>
+                <h3 className="text-[14.5px] font-semibold">Politica de suspensao</h3>
               </div>
               <div className="px-[18px] py-3.5">
                 <p className="text-[12.5px] leading-relaxed text-text-muted">
                   Esta entidade sera automaticamente suspensa ao atingir{' '}
-                  <b className="text-text">
-                    {CRITICAL_EVENTS_LIMIT} eventos criticos
-                  </b>
-                  . Eventos rejeitados retornarao{' '}
+                  <b className="text-text">{CRITICAL_EVENTS_LIMIT} eventos criticos</b>. Eventos
+                  rejeitados retornarao{' '}
                   <code className="rounded bg-surface-2 px-[5px] py-[1px] font-mono text-[11px]">
                     409 Conflict
                   </code>{' '}

@@ -24,24 +24,25 @@ Stack-alvo conforme o desafio: **Next.js + TypeScript**.
 Os arquivos HTML/CSS/JSX **são protótipos de design, não código de produção**. Eles foram construídos com React (CDN) + Babel inline apenas para exibir o comportamento visual e a interação. **Não copie-os direto** — implemente os designs no projeto Next.js com os padrões e bibliotecas adotados pela equipe.
 
 Use os arquivos como:
+
 - referência visual pixel-perfect (cores, espaçamento, tipografia)
 - referência de comportamento (estados, animações, microinterações)
 - referência de copy (textos em PT-BR já redigidos)
 
-| Arquivo | O que contém |
-|---|---|
-| `Holocron Sentinel.html` | Entry point — abra para ver o protótipo rodando |
-| `styles.css` | Todos os design tokens e estilos de componente |
-| `app.jsx` | Router + estado global + simulação de stream |
-| `components/sidebar.jsx` | Sidebar de navegação |
-| `components/ui.jsx` | Helpers visuais reutilizáveis (badges, ícones, toast, JSON view, EmptyState, formatadores) |
-| `pages/dashboard.jsx` | Tela: Dashboard |
-| `pages/entity-detail.jsx` | Tela: Detalhe da entidade |
-| `pages/event-form.jsx` | Tela: Registrar evento |
-| `pages/feed.jsx` | Tela: Feed em tempo real |
-| `pages/ranking.jsx` | Tela: Ranking |
-| `data/mock.js` | Mock data + comentário documentando o schema |
-| `challenge-brief.md` | Cópia do enunciado do desafio |
+| Arquivo                   | O que contém                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| `Holocron Sentinel.html`  | Entry point — abra para ver o protótipo rodando                                            |
+| `styles.css`              | Todos os design tokens e estilos de componente                                             |
+| `app.jsx`                 | Router + estado global + simulação de stream                                               |
+| `components/sidebar.jsx`  | Sidebar de navegação                                                                       |
+| `components/ui.jsx`       | Helpers visuais reutilizáveis (badges, ícones, toast, JSON view, EmptyState, formatadores) |
+| `pages/dashboard.jsx`     | Tela: Dashboard                                                                            |
+| `pages/entity-detail.jsx` | Tela: Detalhe da entidade                                                                  |
+| `pages/event-form.jsx`    | Tela: Registrar evento                                                                     |
+| `pages/feed.jsx`          | Tela: Feed em tempo real                                                                   |
+| `pages/ranking.jsx`       | Tela: Ranking                                                                              |
+| `data/mock.js`            | Mock data + comentário documentando o schema                                               |
+| `challenge-brief.md`      | Cópia do enunciado do desafio                                                              |
 
 ---
 
@@ -56,37 +57,40 @@ Caso o projeto já tenha um design system instalado, reaproveite os primitivos (
 ## 4. Schema do backend (rigorosamente seguido pelo design)
 
 > O frontend NUNCA inventa campos que não existem no backend. Os únicos campos derivados são:
+>
 > - **agregações retornadas pelos endpoints de listagem/ranking** (`total_events`, `last_event_at`, `crit_7d`)
 > - **joins puramente do frontend** (`entity_name` em um evento, derivado de `entity_id`)
 
 ### Entidade
 
-| Campo | Tipo | Notas |
-|---|---|---|
-| `id` | string | ex: `ENT-7012` |
-| `name` | string | |
-| `status` | `'active' \| 'suspended'` | |
-| `critical_events_count` | number | |
-| `created_at` | ISO datetime | |
-| `updated_at` | ISO datetime | |
+| Campo                   | Tipo                      | Notas          |
+| ----------------------- | ------------------------- | -------------- |
+| `id`                    | string                    | ex: `ENT-7012` |
+| `name`                  | string                    |                |
+| `status`                | `'active' \| 'suspended'` |                |
+| `critical_events_count` | number                    |                |
+| `created_at`            | ISO datetime              |                |
+| `updated_at`            | ISO datetime              |                |
 
 **Agregações retornadas em `GET /entities`** (presumidas, conforme o brief):
+
 - `total_events` — total de eventos da entidade
 - `last_event_at` — timestamp do último evento (nullable)
 
 **Agregação retornada em `GET /entities/ranking`**:
+
 - `crit_7d` — eventos críticos nos últimos 7 dias (também pode ser `24h` / `30d` conforme janela)
 
 ### Evento
 
-| Campo | Tipo | Notas |
-|---|---|---|
-| `id` | string | ex: `EVT-0820135` |
-| `entity_id` | string | FK para entidade |
-| `external_id` | string | chave de idempotência |
-| `type` | `'info' \| 'warning' \| 'critical'` | |
-| `payload` | JSON | livre |
-| `created_at` | ISO datetime | |
+| Campo         | Tipo                                | Notas                 |
+| ------------- | ----------------------------------- | --------------------- |
+| `id`          | string                              | ex: `EVT-0820135`     |
+| `entity_id`   | string                              | FK para entidade      |
+| `external_id` | string                              | chave de idempotência |
+| `type`        | `'info' \| 'warning' \| 'critical'` |                       |
+| `payload`     | JSON                                | livre                 |
+| `created_at`  | ISO datetime                        |                       |
 
 **Limite crítico:** `10` eventos críticos suspendem a entidade automaticamente.
 
@@ -98,23 +102,23 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 
 ### Cores
 
-| Token | Valor | Uso |
-|---|---|---|
-| `--brand` | `#FAE231` | Cor primária — destaques, KPI hero, highlight de novos eventos, top-1 do ranking, linha do gráfico |
-| `--brand-ink` | `#1A1A0C` | Texto sobre `--brand` |
-| `--brand-soft` | `#FFF8C2` | Highlight background ao receber evento novo no feed |
-| `--bg` | `#FAFAF7` | Background da aplicação |
-| `--surface` | `#FFFFFF` | Surface de cards |
-| `--surface-2` | `#F5F4EE` | Surface secundária (chip group, hover row) |
-| `--border` | `#E8E6DE` | Bordas padrão |
-| `--border-strong` | `#D8D5CA` | Bordas em hover/focus |
-| `--text` | `#0F1115` | Texto principal |
-| `--text-muted` | `#6B6B63` | Texto secundário |
-| `--text-faint` | `#9C9B92` | Texto terciário / placeholders |
-| `--info` | `#2563EB` / bg `#EFF4FF` | Severidade info |
-| `--warning` | `#B45309` / bg `#FEF6E1` | Severidade warning |
-| `--critical` | `#B91C1C` / bg `#FDECEC` | Severidade critical |
-| `--success` | `#15803D` / bg `#E8F5EC` | Sucesso / status ativo |
+| Token             | Valor                    | Uso                                                                                                |
+| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------- |
+| `--brand`         | `#FAE231`                | Cor primária — destaques, KPI hero, highlight de novos eventos, top-1 do ranking, linha do gráfico |
+| `--brand-ink`     | `#1A1A0C`                | Texto sobre `--brand`                                                                              |
+| `--brand-soft`    | `#FFF8C2`                | Highlight background ao receber evento novo no feed                                                |
+| `--bg`            | `#FAFAF7`                | Background da aplicação                                                                            |
+| `--surface`       | `#FFFFFF`                | Surface de cards                                                                                   |
+| `--surface-2`     | `#F5F4EE`                | Surface secundária (chip group, hover row)                                                         |
+| `--border`        | `#E8E6DE`                | Bordas padrão                                                                                      |
+| `--border-strong` | `#D8D5CA`                | Bordas em hover/focus                                                                              |
+| `--text`          | `#0F1115`                | Texto principal                                                                                    |
+| `--text-muted`    | `#6B6B63`                | Texto secundário                                                                                   |
+| `--text-faint`    | `#9C9B92`                | Texto terciário / placeholders                                                                     |
+| `--info`          | `#2563EB` / bg `#EFF4FF` | Severidade info                                                                                    |
+| `--warning`       | `#B45309` / bg `#FEF6E1` | Severidade warning                                                                                 |
+| `--critical`      | `#B91C1C` / bg `#FDECEC` | Severidade critical                                                                                |
+| `--success`       | `#15803D` / bg `#E8F5EC` | Sucesso / status ativo                                                                             |
 
 ### Tipografia
 
@@ -122,14 +126,14 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 - **Mono:** `Geist Mono` (400/500/600) — IDs, timestamps, código, números tabulares
 - `font-feature-settings: "tnum"` para tabular nums em valores numéricos
 
-| Uso | Tamanho | Peso | Tracking |
-|---|---|---|---|
-| Page title | 22px | 600 | -0.02em |
-| Card title | 14px | 600 | -0.01em |
-| KPI value | 30px | 600 | -0.03em |
-| Body | 13–14px | 400/500 | -0.005em |
-| Table header | 11.5px | 500 | 0.04em uppercase |
-| Mono (IDs, código) | 11–13px | 400/500 | — |
+| Uso                | Tamanho | Peso    | Tracking         |
+| ------------------ | ------- | ------- | ---------------- |
+| Page title         | 22px    | 600     | -0.02em          |
+| Card title         | 14px    | 600     | -0.01em          |
+| KPI value          | 30px    | 600     | -0.03em          |
+| Body               | 13–14px | 400/500 | -0.005em         |
+| Table header       | 11.5px  | 500     | 0.04em uppercase |
+| Mono (IDs, código) | 11–13px | 400/500 | —                |
 
 ### Espaçamento, raio, sombra
 
@@ -150,6 +154,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 **Endpoint consumido:** `GET /entities` — retorna entidades com agregações.
 
 **Layout:**
+
 - Header sticky: título "Entidades monitoradas" + subtítulo + pill "Sistema operacional" + botões "Abrir feed" (ghost) + "Registrar evento" (primary)
 - Linha de 4 KPIs (grid `repeat(4, minmax(0, 1fr))`, gap 14px):
   1. **Entidades ativas** (`hero`, fundo `--brand`) — `{active} / {total}` + delta semanal
@@ -163,11 +168,13 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
   - **Empty state** quando filtros não retornam resultados
 
 **Estados:**
+
 - Loading: skeleton rows (não implementado no protótipo — adicione)
 - Empty (sem entidades): EmptyState com CTA "Criar primeira entidade"
 - Error: alert vermelho com retry
 
 **Componente `ThreatMeter`** (ver `components/ui.jsx`):
+
 - Barra horizontal 80px com cor que varia: verde (< 50%), âmbar (50–99%), vermelho (≥ 100%)
 - Texto `{count}/10` em mono
 
@@ -176,10 +183,12 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 ### 6.2 Detalhe da entidade (`/entities/[id]`)
 
 **Endpoints consumidos:**
+
 - `GET /entities/[id]` — dados da entidade
 - `GET /entities/[id]/events?limit=12` — histórico paginado
 
 **Layout:**
+
 - Breadcrumb: `Dashboard / {entity.name}`
 - Header: back-button, avatar (44px) com iniciais, título com nome + status badge, subtítulo "ID · criada em DD/MM/YYYY", ações "Suspender/Reativar" + "Registrar evento" (disabled se suspensa)
 - **Alerts contextuais:**
@@ -195,6 +204,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
     - Card "Política de suspensão" com explicação + ThreatMeter
 
 **Estados:**
+
 - Entidade inexistente: EmptyState
 - Sem eventos: EmptyState dentro do card de histórico
 
@@ -205,6 +215,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 **Endpoint consumido:** `POST /events`
 
 **Layout:** grid `1fr 360px`
+
 - **Coluna principal — Card "Novo evento":**
   - Banner de resultado da última submissão (sucesso / duplicado / erro / suspensa)
   - Field: **Entidade** (select com optgroup "Ativas" / "Suspensas (somente leitura)")
@@ -217,6 +228,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
   - Card "Como funciona a idempotência" (texto explicativo)
 
 **Validações (client-side):**
+
 - `entityId` obrigatório
 - `external_id` obrigatório, regex `/^[a-zA-Z0-9_\-:.]+$/`
 - `payload` obrigatório válido como JSON objeto (não array, não null)
@@ -238,6 +250,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 **Endpoint consumido:** `GET /events/stream` (Server-Sent Events).
 
 **Layout:**
+
 - Header: título + subtítulo + pill de status do stream (verde "Stream conectado" / âmbar "Pausado" / âmbar "Reconectando..." / vermelho "Desconectado") + botões "Pausar/Retomar" + "Limpar"
 - Card com:
   - **Controls:** chip-group de filtro por severidade com counts (Tudo / Info / Warning / Critical) + texto mono "GET /events/stream · N eventos buffered"
@@ -250,6 +263,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 - Scrim no rodapé: "Buffer limitado a 100 eventos · reconexão automática habilitada"
 
 **Comportamento esperado de SSE:**
+
 - Conectar via `EventSource('/events/stream')`
 - `onmessage` → parse JSON, prepend ao buffer, limitar a 100 itens
 - `onerror` → atualizar status para "reconnecting", retry com backoff exponencial (1s, 2s, 4s, 8s, max 30s)
@@ -265,6 +279,7 @@ Todos os valores são `oklch`/`hex` finais. Os tokens estão consolidados em `st
 **Endpoint consumido:** `GET /entities/ranking?window=24h|7d|30d`
 
 **Layout:**
+
 - Header com chip-group de janela (24h / 7 dias / 30 dias)
 - 3 KPIs: Entidade mais crítica (hero amarelo) / Total no período / Entidades no ranking
 - Card "Top 12":
@@ -289,6 +304,7 @@ Componente reutilizável `HourlyChart` em `pages/entity-detail.jsx`. Recriar com
 **Props:** `hourly: Array<{ info, warning, critical, total }>` — 24 buckets, do mais antigo (-24h) ao mais recente (agora).
 
 **Especificação visual:**
+
 - ViewBox: `0 0 600 220` com `preserveAspectRatio="none"`
 - Canvas height: **220px** (cor de fundo: surface — segue o tema light do app)
 - Padding interno: `padX=8 padTop=44 padBot=14`
@@ -299,11 +315,13 @@ Componente reutilizável `HourlyChart` em `pages/entity-detail.jsx`. Recriar com
 - **Grid:** 3 linhas horizontais tracejadas (25%, 50%, 75%), `stroke-dasharray: 2 4`, cor `--border`
 
 **Animação de entrada (mount-only):**
+
 - A linha: medida com `getTotalLength()`, anima `stroke-dashoffset` de `len` para `0` em 1.1s `cubic-bezier(0.22, 0.61, 0.36, 1)`
 - A área: opacity 0 → 1 em 1.3s ease-out com delay 0.15s
 - **Crítico:** ao final, limpar `stroke-dasharray` e `transition` inline para que updates posteriores (novos eventos via stream) não re-disparem a animação. Implementado com `useEffect(..., [])` + `setTimeout` cleanup.
 
 **Hover/tooltip:**
+
 - `onMouseMove` na chart-canvas: converter `clientX` → índice de bucket (0–23)
 - Renderiza:
   - `<line>` vertical guia tracejada na posição do bucket
@@ -314,6 +332,7 @@ Componente reutilizável `HourlyChart` em `pages/entity-detail.jsx`. Recriar com
 - `onMouseLeave` → limpa hover
 
 **Stats no header do gráfico:**
+
 - 4 valores em mono: Total, Pico/h, Warning (cor âmbar), Critical (cor vermelha)
 
 ---
@@ -322,12 +341,12 @@ Componente reutilizável `HourlyChart` em `pages/entity-detail.jsx`. Recriar com
 
 ### Estado global esperado
 
-| Estado | Tipo | Fonte | Vida |
-|---|---|---|---|
-| `entities` | `Entity[]` | `GET /entities` | revalidar com SWR/React Query a cada 30s |
-| `events` (live) | `Event[]` | SSE `/events/stream` | em memória, limitado a 100 |
-| `recentSubmissions` | `Submission[]` | local (form) | sessão |
-| `toasts` | `Toast[]` | local | auto-dismiss 4.2s |
+| Estado              | Tipo           | Fonte                | Vida                                     |
+| ------------------- | -------------- | -------------------- | ---------------------------------------- |
+| `entities`          | `Entity[]`     | `GET /entities`      | revalidar com SWR/React Query a cada 30s |
+| `events` (live)     | `Event[]`      | SSE `/events/stream` | em memória, limitado a 100               |
+| `recentSubmissions` | `Submission[]` | local (form)         | sessão                                   |
+| `toasts`            | `Toast[]`      | local                | auto-dismiss 4.2s                        |
 
 Stream **NÃO** deve atualizar a tabela do dashboard em tempo real direto — é preferível revalidar via SWR/React Query (e.g., on focus, on interval) para manter a consistência. Caso decida fazer o "live patching", garanta que rebatimentos (`critical_events_count`, `last_event_at`, `total_events`) sejam aplicados na entidade certa.
 
@@ -346,17 +365,17 @@ Stream **NÃO** deve atualizar a tabela do dashboard em tempo real direto — é
 
 ## 9. Animações e microinterações
 
-| Onde | Propriedade | Duração | Easing |
-|---|---|---|---|
-| Pill live "Sistema operacional" | `box-shadow` pulse | 1.6s infinite | linear |
-| Botão hover | `background-color` | 120ms | default |
-| Filter chip selection | `box-shadow` + `background` | 120ms | default |
-| Input focus | `border-color` + `box-shadow` | 120ms | default |
-| Novo evento no feed | `background` flash | 1.6s | ease-out |
-| Gráfico — linha draw-on | `stroke-dashoffset` | 1.1s | `cubic-bezier(0.22, 0.61, 0.36, 1)` |
-| Gráfico — área fade-in | `opacity` | 1.3s | ease-out (delay 0.15s) |
-| Toast entrada | `translateY + opacity` | 200ms | ease-out |
-| Spinner | `rotate(360deg)` | 700ms | linear infinite |
+| Onde                            | Propriedade                   | Duração       | Easing                              |
+| ------------------------------- | ----------------------------- | ------------- | ----------------------------------- |
+| Pill live "Sistema operacional" | `box-shadow` pulse            | 1.6s infinite | linear                              |
+| Botão hover                     | `background-color`            | 120ms         | default                             |
+| Filter chip selection           | `box-shadow` + `background`   | 120ms         | default                             |
+| Input focus                     | `border-color` + `box-shadow` | 120ms         | default                             |
+| Novo evento no feed             | `background` flash            | 1.6s          | ease-out                            |
+| Gráfico — linha draw-on         | `stroke-dashoffset`           | 1.1s          | `cubic-bezier(0.22, 0.61, 0.36, 1)` |
+| Gráfico — área fade-in          | `opacity`                     | 1.3s          | ease-out (delay 0.15s)              |
+| Toast entrada                   | `translateY + opacity`        | 200ms         | ease-out                            |
+| Spinner                         | `rotate(360deg)`              | 700ms         | linear infinite                     |
 
 ---
 

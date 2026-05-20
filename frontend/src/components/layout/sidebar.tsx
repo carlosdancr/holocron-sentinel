@@ -2,14 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  LayoutDashboard,
-  Radio,
-  BarChart3,
-  Send,
-  Shield,
-  Activity,
-} from 'lucide-react'
+import { LayoutDashboard, Radio, BarChart3, Send, Shield, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -56,8 +49,7 @@ export function Sidebar() {
 
         {NAV_ITEMS.map((item) => {
           const isActive =
-            pathname === item.href ||
-            (item.href === '/' && pathname.startsWith('/entities/'))
+            pathname === item.href || (item.href === '/' && pathname.startsWith('/entities/'))
 
           return (
             <Link

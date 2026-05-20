@@ -1,6 +1,5 @@
 // URL base da API — usa variavel de ambiente ou fallback para localhost
-export const API_BASE_URL =
-  process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3333'
+export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3333'
 
 // Limite de eventos criticos antes da suspensao automatica (alinhado com o backend)
 export const CRITICAL_EVENTS_LIMIT = 10

@@ -7,7 +7,10 @@ interface LivePillProps {
   label?: string
 }
 
-const STATUS_CONFIG: Record<LivePillStatus, { label: string; dotClass: string; animation: string }> = {
+const STATUS_CONFIG: Record<
+  LivePillStatus,
+  { label: string; dotClass: string; animation: string }
+> = {
   connected: {
     label: 'Conectado',
     dotClass: 'bg-success',

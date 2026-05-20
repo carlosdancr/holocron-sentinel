@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
 export default function RankingPage() {
   const router = useRouter()
   const { data: rankingData, dataUpdatedAt } = useRanking({ limit: 12 })
-  const ranked = rankingData?.data ?? []
+  const ranked = useMemo(() => rankingData?.data ?? [], [rankingData])
 
   // Valor maximo para barra proporcional
   const max = ranked[0]?.recentCriticalCount ?? 1
@@ -59,11 +59,7 @@ export default function RankingPage() {
             <KpiCard
               label="Entidade mais critica"
               value={ranked[0]?.name ?? '—'}
-              footer={
-                ranked[0]
-                  ? `${ranked[0].recentCriticalCount} eventos criticos`
-                  : 'sem dados'
-              }
+              footer={ranked[0] ? `${ranked[0].recentCriticalCount} eventos criticos` : 'sem dados'}
               hero
               valueClassName="!text-[22px] !leading-tight"
             />
@@ -84,9 +80,7 @@ export default function RankingPage() {
             {/* Card header */}
             <div className="flex items-start justify-between border-b border-border px-[18px] py-3.5">
               <div>
-                <h2 className="text-[14.5px] font-semibold">
-                  Top 12 — janela 7 dias
-                </h2>
+                <h2 className="text-[14.5px] font-semibold">Top 12 — janela 7 dias</h2>
                 <p className="mt-0.5 text-xs text-text-muted">
                   Endpoint:{' '}
                   <code className="rounded bg-surface-2 px-1.5 py-[1px] font-mono text-[12px]">
@@ -149,9 +143,7 @@ export default function RankingPage() {
                       <div className="flex items-center gap-2.5 min-w-0">
                         <EntityAvatar name={entity.name} size={30} />
                         <div className="min-w-0">
-                          <div className="truncate font-medium">
-                            {entity.name}
-                          </div>
+                          <div className="truncate font-medium">{entity.name}</div>
                           <div className="truncate font-mono text-[11px] text-text-faint">
                             {entity.id}
                           </div>
@@ -166,11 +158,7 @@ export default function RankingPage() {
                         <div
                           className={cn(
                             'h-full rounded-full transition-all duration-500',
-                            i === 0
-                              ? 'bg-critical'
-                              : i < 3
-                                ? 'bg-warning'
-                                : 'bg-info',
+                            i === 0 ? 'bg-critical' : i < 3 ? 'bg-warning' : 'bg-info',
                           )}
                           style={{ width: `${pct}%` }}
                         />
@@ -178,9 +166,7 @@ export default function RankingPage() {
 
                       {/* Contagem */}
                       <div className="text-right font-mono text-[12.5px]">
-                        <span className="font-bold">
-                          {entity.recentCriticalCount}
-                        </span>
+                        <span className="font-bold">{entity.recentCriticalCount}</span>
                         <span className="text-text-faint"> evt</span>
                       </div>
                     </div>
@@ -191,8 +177,8 @@ export default function RankingPage() {
 
             {/* Scrim footer */}
             <div className="border-t border-border py-3.5 text-center font-mono text-xs text-text-faint">
-              Janela: ultimos 7 dias · ordem decrescente por eventos criticos ·
-              agregacao cacheada (TTL 30s)
+              Janela: ultimos 7 dias · ordem decrescente por eventos criticos · agregacao cacheada
+              (TTL 30s)
             </div>
           </div>
         </div>

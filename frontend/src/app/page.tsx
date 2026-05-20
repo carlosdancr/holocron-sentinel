@@ -38,8 +38,7 @@ function sortEntities(entities: Entity[], sortBy: SortBy): Entity[] {
       return sorted.sort((a, b) => b.totalEvents - a.totalEvents)
     case 'recent':
       return sorted.sort(
-        (a, b) =>
-          new Date(b.lastEventAt || 0).getTime() - new Date(a.lastEventAt || 0).getTime(),
+        (a, b) => new Date(b.lastEventAt || 0).getTime() - new Date(a.lastEventAt || 0).getTime(),
       )
     case 'name':
       return sorted.sort((a, b) => a.name.localeCompare(b.name))
@@ -50,13 +49,7 @@ function sortEntities(entities: Entity[], sortBy: SortBy): Entity[] {
 
 // ===== Componente: Dialog de criar entidade (simples) =====
 
-function CreateEntityDialog({
-  open,
-  onClose,
-}: {
-  open: boolean
-  onClose: () => void
-}) {
+function CreateEntityDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [name, setName] = useState('')
   const createEntity = useCreateEntity()
 
@@ -140,7 +133,7 @@ export default function DashboardPage() {
   const [sortBy, setSortBy] = useState<SortBy>('threat')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const entities = data?.data ?? []
+  const entities = useMemo(() => data?.data ?? [], [data])
 
   // KPIs computados
   const kpis = useMemo(() => {
@@ -399,9 +392,7 @@ export default function DashboardPage() {
                           onClick={() => handleToggleStatus(entity)}
                           disabled={toggleStatus.isPending}
                           title={
-                            entity.status === 'active'
-                              ? 'Suspender entidade'
-                              : 'Reativar entidade'
+                            entity.status === 'active' ? 'Suspender entidade' : 'Reativar entidade'
                           }
                           className="inline-flex h-7 items-center rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong disabled:opacity-50"
                         >

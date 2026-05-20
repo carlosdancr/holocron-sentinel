@@ -14,10 +14,9 @@ export function useEntityEvents({ entityId, page = 1, limit = 12 }: UseEntityEve
   return useQuery({
     queryKey: ['entity-events', entityId, page, limit],
     queryFn: async () => {
-      const { data } = await api.get<EventListResponse>(
-        `/entities/${entityId}/events`,
-        { params: { page, limit } },
-      )
+      const { data } = await api.get<EventListResponse>(`/entities/${entityId}/events`, {
+        params: { page, limit },
+      })
       return data
     },
     enabled: !!entityId,

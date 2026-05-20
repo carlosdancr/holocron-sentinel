@@ -126,11 +126,7 @@ export default function FeedPage() {
           {filtered.length === 0 ? (
             <EmptyState
               icon={<Activity size={24} strokeWidth={1.6} />}
-              title={
-                typeFilter === 'all'
-                  ? 'Aguardando eventos...'
-                  : 'Nenhum evento neste filtro'
-              }
+              title={typeFilter === 'all' ? 'Aguardando eventos...' : 'Nenhum evento neste filtro'}
               description={
                 typeFilter === 'all'
                   ? 'O stream esta conectado. Novos eventos aparecerao aqui assim que forem registrados.'
