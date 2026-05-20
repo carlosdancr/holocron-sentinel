@@ -1,26 +1,135 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ===== Design Tokens mapeados para Tailwind v4 ===== */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Brand */
+  --color-brand: #FAE231;
+  --color-brand-ink: #1A1A0C;
+  --color-brand-soft: #FFF8C2;
+
+  /* Neutrals */
+  --color-bg: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F5F4EE;
+  --color-border: #E8E6DE;
+  --color-border-strong: #D8D5CA;
+  --color-text: #0F1115;
+  --color-text-muted: #6B6B63;
+  --color-text-faint: #9C9B92;
+
+  /* Severidade */
+  --color-info: #2563EB;
+  --color-info-bg: #EFF4FF;
+  --color-warning: #B45309;
+  --color-warning-bg: #FEF6E1;
+  --color-critical: #B91C1C;
+  --color-critical-bg: #FDECEC;
+  --color-success: #15803D;
+  --color-success-bg: #E8F5EC;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(15, 17, 21, 0.04);
+  --shadow-md: 0 1px 2px rgba(15, 17, 21, 0.04), 0 4px 12px rgba(15, 17, 21, 0.05);
+  --shadow-lg: 0 8px 32px rgba(15, 17, 21, 0.08);
+
+  /* Raios de borda */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Tipografia — referencia as CSS vars das fontes do Next.js */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ===== Base ===== */
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+}
+
+/* ===== Scrollbar customizada ===== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-faint);
+}
+
+/* ===== Animacoes ===== */
+
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(21, 128, 61, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0); }
+}
+
+@keyframes pulse-dot-warn {
+  0% { box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(180, 83, 9, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(180, 83, 9, 0); }
+}
+
+@keyframes flash {
+  0% { background-color: var(--color-brand-soft); }
+  100% { background-color: transparent; }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== JSON Viewer — syntax highlighting ===== */
+
+.json-block {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow: auto;
+  max-height: 220px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.json-block .k { color: #7C3AED; } /* chaves (roxo) */
+.json-block .s { color: #15803D; } /* strings (verde) */
+.json-block .n { color: #2563EB; } /* numeros (azul) */
+.json-block .b { color: #B45309; } /* booleans/null (ambar) */
+
+/* ===== Feed row — animacao de novo evento ===== */
+
+.feed-row-new {
+  animation: flash 1.6s ease-out;
 }
