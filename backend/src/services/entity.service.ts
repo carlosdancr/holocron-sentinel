@@ -200,4 +200,25 @@ export class EntityService {
       lastEventAt: row.last_event_at,
     }
   }
+
+  async updateStatus(id: string, status: 'active' | 'suspended') {
+    // Verifica se a entidade existe
+    const entity = await prisma.entity.findUnique({ where: { id } })
+
+    if (!entity) return null
+
+    // Se esta reativando, zera o contador de eventos criticos
+    const data: { status: string; criticalEventsCount?: number } = { status }
+
+    if (status === 'active') {
+      data.criticalEventsCount = 0
+    }
+
+    const updated = await prisma.entity.update({
+      where: { id },
+      data,
+    })
+
+    return updated
+  }
 }
