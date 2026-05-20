@@ -18,6 +18,9 @@ export async function streamRoutes(app: FastifyInstance) {
    * Cada mensagem começa com "data: " e termina com duas quebras de linha.
    */
   app.get('/events/stream', async (request, reply) => {
+    // Diz ao Fastify que assumimos o controle do response
+    reply.hijack()
+
     // ─── Headers SSE ───
     // Esses headers dizem ao browser: "isso é um stream, não feche a conexão"
     reply.raw.writeHead(200, {
@@ -26,6 +29,9 @@ export async function streamRoutes(app: FastifyInstance) {
       Connection: 'keep-alive', // Manter conexão aberta
       'Access-Control-Allow-Origin': '*', // Permitir acesso do frontend
     })
+
+    // Flush inicial — força o envio dos headers para o browser
+    reply.raw.write(':ok\n\n')
 
     // ─── Heartbeat ───
     // Envia um "ping" a cada 30 segundos para manter a conexão viva

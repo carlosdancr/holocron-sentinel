@@ -9,7 +9,7 @@ interface LivePillProps {
 
 const STATUS_CONFIG: Record<LivePillStatus, { label: string; dotClass: string; animation: string }> = {
   connected: {
-    label: 'Sistema operacional',
+    label: 'Conectado',
     dotClass: 'bg-success',
     animation: 'pulse-dot 1.6s infinite',
   },

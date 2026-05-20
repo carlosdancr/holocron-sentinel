@@ -210,7 +210,7 @@ export default function DashboardPage() {
         subtitle="Visao geral das entidades sob vigilancia continua do Holocron Sentinel."
         actions={
           <>
-            <LivePill />
+            <LivePill label="Sistema operacional" />
             <button
               onClick={() => router.push('/feed')}
               className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong"
