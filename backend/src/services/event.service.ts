@@ -148,6 +148,33 @@ export class EventService {
 
     return result
   }
+
+  async listByEntity(entityId: string, page: number, limit: number) {
+    const offset = (page - 1) * limit
+
+    // Conta o total de eventos da entidade (para paginacao)
+    const total = await prisma.event.count({
+      where: { entityId },
+    })
+
+    // Busca os eventos ordenados do mais recente para o mais antigo
+    const events = await prisma.event.findMany({
+      where: { entityId },
+      orderBy: { createdAt: 'desc' },
+      skip: offset,
+      take: limit,
+    })
+
+    return {
+      data: events,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
+  }
 }
 
 // ─── Erros customizados ───

@@ -10,4 +10,17 @@ export const createEventSchema = z.object({
   payload: z.record(z.string(), z.unknown()).default({}),
 })
 
+// Schema para params de rota /entities/:entityId/events
+export const listEntityEventsParamsSchema = z.object({
+  entityId: z.string().uuid(),
+})
+
+// Schema para query params da listagem de eventos
+export const listEntityEventsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(12),
+})
+
 export type CreateEventInput = z.infer<typeof createEventSchema>
+export type ListEntityEventsParams = z.infer<typeof listEntityEventsParamsSchema>
+export type ListEntityEventsQuery = z.infer<typeof listEntityEventsQuerySchema>

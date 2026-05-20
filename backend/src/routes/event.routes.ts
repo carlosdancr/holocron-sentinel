@@ -5,7 +5,11 @@ import {
   EntityNotFoundError,
   EntitySuspendedError,
 } from '../services/event.service.js'
-import { createEventSchema } from '../schemas/event.schemas.js'
+import {
+  createEventSchema,
+  listEntityEventsParamsSchema,
+  listEntityEventsQuerySchema,
+} from '../schemas/event.schemas.js'
 
 const eventService = new EventService()
 
@@ -46,4 +50,22 @@ export async function eventRoutes(app: FastifyInstance) {
       throw error
     }
   })
+
+  // GET /entities/:entityId/events — historico de eventos de uma entidade
+  typedApp.get(
+    '/entities/:entityId/events',
+    {
+      schema: {
+        params: listEntityEventsParamsSchema,
+        querystring: listEntityEventsQuerySchema,
+      },
+    },
+    async (request, reply) => {
+      const { entityId } = request.params
+      const { page, limit } = request.query
+
+      const result = await eventService.listByEntity(entityId, page, limit)
+      return reply.send(result)
+    },
+  )
 }
