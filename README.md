@@ -43,7 +43,7 @@ cd backend
 npm test
 ```
 
-Os testes rodam contra o banco local (mesmo `DATABASE_URL` do `.env`). São 24 testes de integração cobrindo:
+Os testes rodam contra um banco dedicado (`holocron_sentinel_test`), separado do banco de desenvolvimento. Na primeira execução, o setup global do Vitest cria o banco automaticamente e aplica as migrations. São 24 testes de integração cobrindo:
 
 - Criação, listagem e paginação de entidades
 - Registro de eventos (info, warning, critical)
@@ -205,16 +205,14 @@ O ranking dos últimos 7 dias usa `INNER JOIN` com filtro temporal + `GROUP BY`,
 
 1. **Redis Pub/Sub para SSE**: substituir o `EventEmitter` local por Redis para suportar múltiplas instâncias do backend.
 
-2. **Banco de testes separado**: usar um `DATABASE_URL` diferente para testes, com reset automático entre suites. Hoje os testes rodam no banco de desenvolvimento.
+2. **Rate limiting**: proteger o `POST /events` com rate limiting por IP/token para evitar abuso.
 
-3. **Rate limiting**: proteger o `POST /events` com rate limiting por IP/token para evitar abuso.
+3. **Materializar o ranking**: para volumes muito grandes, pré-computar o ranking em uma tabela materializada atualizada por cron ou trigger, em vez de calcular a cada request.
 
-4. **Materializar o ranking**: para volumes muito grandes, pré-computar o ranking em uma tabela materializada atualizada por cron ou trigger, em vez de calcular a cada request.
+4. **Observabilidade**: logs estruturados (pino/winston), métricas de latência por endpoint, e tracing distribuído para debugar problemas em produção.
 
-5. **Observabilidade**: logs estruturados (pino/winston), métricas de latência por endpoint, e tracing distribuído para debugar problemas em produção.
+5. **Cache HTTP**: adicionar `Cache-Control` e `ETag` nas rotas de listagem para reduzir carga no banco quando o frontend re-fetcha.
 
-6. **Cache HTTP**: adicionar `Cache-Control` e `ETag` nas rotas de listagem para reduzir carga no banco quando o frontend re-fetcha.
+6. **Paginação server-side no frontend**: com milhares de entidades, paginar no servidor em vez de trazer tudo com `limit=100`.
 
-7. **Paginação server-side no frontend**: com milhares de entidades, paginar no servidor em vez de trazer tudo com `limit=100`.
-
-8. **Testes de concorrência**: testes que disparam N requests simultâneas para validar o comportamento sob carga real (k6 ou Artillery).
+7. **Testes de concorrência**: testes que disparam N requests simultâneas para validar o comportamento sob carga real (k6 ou Artillery).
