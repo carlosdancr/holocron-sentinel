@@ -157,20 +157,85 @@ export class EventService {
     return result
   }
 
-  async listByEntity(entityId: string, page: number, limit: number) {
+  async listByEntity(
+    entityId: string,
+    page: number,
+    limit: number,
+    type?: 'info' | 'warning' | 'critical',
+  ) {
     const offset = (page - 1) * limit
 
-    // Conta o total de eventos da entidade (para paginacao)
-    const total = await prisma.event.count({
-      where: { entityId },
-    })
+    // Monta WHERE com filtro de tipo opcional
+    const where: { entityId: string; type?: string } = { entityId }
+    if (type) where.type = type
+
+    // Conta o total filtrado (para paginação)
+    const total = await prisma.event.count({ where })
 
     // Busca os eventos ordenados do mais recente para o mais antigo
     const events = await prisma.event.findMany({
-      where: { entityId },
+      where,
       orderBy: { createdAt: 'desc' },
       skip: offset,
       take: limit,
+    })
+
+    // Summary das últimas 24h (sem filtro de tipo — global da entidade)
+    const summaryResult = await prisma.$queryRaw<
+      Array<{
+        total_24h: bigint
+        info_24h: bigint
+        warning_24h: bigint
+        critical_24h: bigint
+      }>
+    >`
+      SELECT
+        COUNT(*) AS total_24h,
+        COUNT(*) FILTER (WHERE type = 'info') AS info_24h,
+        COUNT(*) FILTER (WHERE type = 'warning') AS warning_24h,
+        COUNT(*) FILTER (WHERE type = 'critical') AS critical_24h
+      FROM events
+      WHERE entity_id = ${entityId}
+        AND created_at >= NOW() - INTERVAL '24 hours'
+    `
+
+    const s = summaryResult[0]
+
+    // Atividade horária (últimas 24h) — 24 buckets para o gráfico
+    const hourlyResult = await prisma.$queryRaw<
+      Array<{
+        hours_ago: number
+        info: bigint
+        warning: bigint
+        critical: bigint
+        total: bigint
+      }>
+    >`
+      SELECT
+        EXTRACT(EPOCH FROM (NOW() - created_at))::int / 3600 AS hours_ago,
+        COUNT(*) FILTER (WHERE type = 'info') AS info,
+        COUNT(*) FILTER (WHERE type = 'warning') AS warning,
+        COUNT(*) FILTER (WHERE type = 'critical') AS critical,
+        COUNT(*) AS total
+      FROM events
+      WHERE entity_id = ${entityId}
+        AND created_at >= NOW() - INTERVAL '24 hours'
+      GROUP BY hours_ago
+      ORDER BY hours_ago DESC
+    `
+
+    // Monta array de 24 buckets (0 = agora, 23 = -23h)
+    const hourlyActivity = Array.from({ length: 24 }, (_, i) => {
+      const hoursAgo = 23 - i
+      const label = hoursAgo === 0 ? 'agora' : `-${hoursAgo}h`
+      const bucket = hourlyResult.find((r) => Number(r.hours_ago) === hoursAgo)
+      return {
+        label,
+        info: bucket ? Number(bucket.info) : 0,
+        warning: bucket ? Number(bucket.warning) : 0,
+        critical: bucket ? Number(bucket.critical) : 0,
+        total: bucket ? Number(bucket.total) : 0,
+      }
     })
 
     return {
@@ -181,6 +246,15 @@ export class EventService {
         total,
         totalPages: Math.ceil(total / limit),
       },
+      summary: {
+        last24h: {
+          total: Number(s.total_24h),
+          info: Number(s.info_24h),
+          warning: Number(s.warning_24h),
+          critical: Number(s.critical_24h),
+        },
+      },
+      hourlyActivity,
     }
   }
 }

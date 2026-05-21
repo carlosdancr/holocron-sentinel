@@ -10,42 +10,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import type { Event } from '@/lib/types'
+import type { HourlyBucket } from '@/lib/types'
 
 // ===== Types =====
 
-interface HourlyBucket {
-  label: string
-  info: number
-  warning: number
-  critical: number
-  total: number
-}
-
 interface HourlyChartProps {
-  events: Event[]
-}
-
-// ===== Helpers =====
-
-function buildBuckets(events: Event[]): HourlyBucket[] {
-  const buckets: HourlyBucket[] = Array.from({ length: 24 }, (_, i) => {
-    const hoursAgo = 23 - i
-    const label = hoursAgo === 0 ? 'agora' : `-${hoursAgo}h`
-    return { label, info: 0, warning: 0, critical: 0, total: 0 }
-  })
-
-  const now = Date.now()
-  events.forEach((ev) => {
-    const hoursAgo = Math.floor((now - new Date(ev.createdAt).getTime()) / 3600000)
-    if (hoursAgo >= 0 && hoursAgo < 24) {
-      const idx = 23 - hoursAgo
-      buckets[idx][ev.type]++
-      buckets[idx].total++
-    }
-  })
-
-  return buckets
+  hourlyActivity: HourlyBucket[]
+  last24h: { total: number; warning: number; critical: number }
 }
 
 // ===== Custom Tooltip =====
@@ -91,13 +62,11 @@ function ChartTooltip({
 
 // ===== Componente principal =====
 
-export function HourlyChart({ events }: HourlyChartProps) {
-  const hourly = useMemo(() => buildBuckets(events), [events])
-
-  const peak = Math.max(1, ...hourly.map((b) => b.total))
-  const totalLast24h = hourly.reduce((s, b) => s + b.total, 0)
-  const warnLast24h = hourly.reduce((s, b) => s + b.warning, 0)
-  const critLast24h = hourly.reduce((s, b) => s + b.critical, 0)
+export function HourlyChart({ hourlyActivity, last24h }: HourlyChartProps) {
+  const peak = useMemo(
+    () => Math.max(1, ...hourlyActivity.map((b) => b.total)),
+    [hourlyActivity],
+  )
 
   // Mostrar apenas alguns labels no eixo X para nao poluir
   const visibleTicks = ['-23h', '-18h', '-12h', '-6h', 'agora']
@@ -115,7 +84,7 @@ export function HourlyChart({ events }: HourlyChartProps) {
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
               Total
             </div>
-            <div className="text-[15px] font-semibold tabular-nums">{totalLast24h}</div>
+            <div className="text-[15px] font-semibold tabular-nums">{last24h.total}</div>
           </div>
           <div className="text-right">
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
@@ -127,14 +96,14 @@ export function HourlyChart({ events }: HourlyChartProps) {
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
               Warning
             </div>
-            <div className="text-[15px] font-semibold tabular-nums text-warning">{warnLast24h}</div>
+            <div className="text-[15px] font-semibold tabular-nums text-warning">{last24h.warning}</div>
           </div>
           <div className="text-right">
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
               Critical
             </div>
             <div className="text-[15px] font-semibold tabular-nums text-critical">
-              {critLast24h}
+              {last24h.critical}
             </div>
           </div>
         </div>
@@ -143,7 +112,7 @@ export function HourlyChart({ events }: HourlyChartProps) {
       {/* Chart */}
       <div className="px-2 pt-4 pb-1">
         <ResponsiveContainer width="100%" height={180}>
-          <AreaChart data={hourly} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <AreaChart data={hourlyActivity} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#FAE231" stopOpacity={0.55} />

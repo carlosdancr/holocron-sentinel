@@ -62,9 +62,9 @@ export async function eventRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       const { entityId } = request.params
-      const { page, limit } = request.query
+      const { page, limit, type } = request.query
 
-      const result = await eventService.listByEntity(entityId, page, limit)
+      const result = await eventService.listByEntity(entityId, page, limit, type)
       return reply.send(result)
     },
   )

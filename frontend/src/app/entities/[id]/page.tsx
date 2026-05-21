@@ -66,38 +66,38 @@ export default function EntityDetailPage({ params }: PageProps) {
   const router = useRouter()
 
   const { data: entity, isLoading, error } = useEntity(id)
-  const { data: eventsData } = useEntityEvents({ entityId: id, page: 1, limit: 100 })
   const toggleStatus = useToggleEntityStatus()
+
+  // Paginação server-side
+  const [eventPage, setEventPage] = useState(1)
+  const {
+    data: eventsData,
+    isPlaceholderData,
+  } = useEntityEvents({ entityId: id, page: eventPage, limit: EVENTS_PER_PAGE })
 
   const events = useMemo(() => eventsData?.data ?? [], [eventsData])
   const pagination = eventsData?.pagination
+  const summary = eventsData?.summary
+  const hourlyActivity = useMemo(() => eventsData?.hourlyActivity ?? [], [eventsData])
 
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null)
-  const [eventPage, setEventPage] = useState(0)
 
   // Derivados
   const isSuspended = entity?.status === 'suspended'
   const isNearLimit =
     !isSuspended && (entity?.criticalEventsCount ?? 0) >= CRITICAL_EVENTS_LIMIT * 0.7
 
-  // Eventos das ultimas 24h (para KPI)
-  const last24hStats = useMemo(() => {
-    const cutoff = new Date()
-    cutoff.setHours(cutoff.getHours() - 24)
-    const cutoffTime = cutoff.getTime()
-    const last24h = events.filter((ev) => new Date(ev.createdAt).getTime() > cutoffTime)
-    return {
-      total: last24h.length,
-      critical: last24h.filter((ev) => ev.type === 'critical').length,
-      warning: last24h.filter((ev) => ev.type === 'warning').length,
-    }
-  }, [events])
+  // KPIs vindos do summary (server-side)
+  const last24hStats = useMemo(
+    () => summary?.last24h ?? { total: 0, info: 0, warning: 0, critical: 0 },
+    [summary],
+  )
 
-  // Paginação do histórico de eventos
-  const totalEventPages = Math.ceil(events.length / EVENTS_PER_PAGE)
-  const pagedEvents = events.slice(eventPage * EVENTS_PER_PAGE, (eventPage + 1) * EVENTS_PER_PAGE)
-  const eventsFrom = events.length > 0 ? eventPage * EVENTS_PER_PAGE + 1 : 0
-  const eventsTo = Math.min((eventPage + 1) * EVENTS_PER_PAGE, events.length)
+  // Paginação
+  const totalEventPages = pagination?.totalPages ?? 0
+  const totalEvents = pagination?.total ?? 0
+  const eventsFrom = totalEvents > 0 ? (eventPage - 1) * EVENTS_PER_PAGE + 1 : 0
+  const eventsTo = Math.min(eventPage * EVENTS_PER_PAGE, totalEvents)
 
   // Toggle status handler
   const handleToggleStatus = () => {
@@ -288,7 +288,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             </div>
 
             {/* Hourly chart */}
-            <HourlyChart events={events} />
+            <HourlyChart hourlyActivity={hourlyActivity} last24h={last24hStats} />
 
             {/* Event history */}
             <div className="animate-fade-in-up [animation-delay:120ms] overflow-hidden rounded-md border border-border bg-surface shadow-sm">
@@ -296,13 +296,13 @@ export default function EntityDetailPage({ params }: PageProps) {
                 <div>
                   <h3 className="text-[14.5px] font-semibold">Histórico de eventos</h3>
                   <p className="mt-0.5 text-xs text-text-muted">
-                    {pagination?.total ?? events.length} eventos registrados para esta entidade.
+                    {entity.totalEvents} eventos registrados para esta entidade.
                   </p>
                 </div>
               </div>
 
               {/* Event list or empty */}
-              {events.length === 0 ? (
+              {events.length === 0 && eventPage === 1 ? (
                 <div>
                   <EmptyState
                     icon={<Activity size={24} strokeWidth={1.6} />}
@@ -311,8 +311,11 @@ export default function EntityDetailPage({ params }: PageProps) {
                   />
                 </div>
               ) : (
-                <div className="flex min-h-[536px] flex-col">
-                  {pagedEvents.map((ev) => {
+                <div className={cn(
+                  'flex min-h-[536px] flex-col',
+                  isPlaceholderData && 'opacity-60 transition-opacity duration-200',
+                )}>
+                  {events.map((ev) => {
                     const isExpanded = expandedEvent === ev.id
 
                     return (
@@ -376,17 +379,17 @@ export default function EntityDetailPage({ params }: PageProps) {
               )}
 
               {/* Pagination footer */}
-              {events.length > 0 && (
+              {totalEvents > 0 && (
                 <div className="flex items-center justify-between border-t border-border px-4 py-3">
                   <span className="font-mono text-xs text-text-faint">
-                    {eventsFrom}–{eventsTo} de {events.length} eventos
+                    {eventsFrom}–{eventsTo} de {totalEvents} eventos
                   </span>
 
                   {totalEventPages > 1 && (
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setEventPage((p) => p - 1)}
-                        disabled={eventPage === 0}
+                        disabled={eventPage <= 1}
                         className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-default disabled:opacity-35 disabled:pointer-events-none"
                       >
                         <ChevronLeft size={14} strokeWidth={1.6} />
@@ -395,10 +398,10 @@ export default function EntityDetailPage({ params }: PageProps) {
                       {Array.from({ length: totalEventPages }, (_, i) => (
                         <button
                           key={i}
-                          onClick={() => setEventPage(i)}
+                          onClick={() => setEventPage(i + 1)}
                           className={cn(
                             'inline-flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 font-mono text-xs font-medium transition-colors duration-120',
-                            i === eventPage
+                            i + 1 === eventPage
                               ? 'bg-text text-surface'
                               : 'border border-border bg-surface text-text-muted hover:bg-surface-2 hover:border-border-strong',
                           )}
@@ -409,7 +412,7 @@ export default function EntityDetailPage({ params }: PageProps) {
 
                       <button
                         onClick={() => setEventPage((p) => p + 1)}
-                        disabled={eventPage >= totalEventPages - 1}
+                        disabled={eventPage >= totalEventPages}
                         className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-default disabled:opacity-35 disabled:pointer-events-none"
                       >
                         <ChevronRight size={14} strokeWidth={1.6} />

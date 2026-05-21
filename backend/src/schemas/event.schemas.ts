@@ -18,7 +18,8 @@ export const listEntityEventsParamsSchema = z.object({
 // Schema para query params da listagem de eventos
 export const listEntityEventsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(12),
+  limit: z.coerce.number().int().min(1).max(100).default(8),
+  type: z.enum(['info', 'warning', 'critical']).optional(),
 })
 
 export type CreateEventInput = z.infer<typeof createEventSchema>

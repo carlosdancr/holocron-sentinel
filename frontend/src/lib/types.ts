@@ -57,6 +57,14 @@ export interface Event {
   createdAt: string
 }
 
+export interface HourlyBucket {
+  label: string
+  info: number
+  warning: number
+  critical: number
+  total: number
+}
+
 export interface EventListResponse {
   data: Event[]
   pagination: {
@@ -65,6 +73,15 @@ export interface EventListResponse {
     total: number
     totalPages: number
   }
+  summary: {
+    last24h: {
+      total: number
+      info: number
+      warning: number
+      critical: number
+    }
+  }
+  hourlyActivity: HourlyBucket[]
 }
 
 // ===== Criacao de evento =====
