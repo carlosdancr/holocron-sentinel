@@ -3,7 +3,10 @@ import { z } from 'zod'
 // Schema de validação para registro de evento
 export const createEventSchema = z.object({
   entityId: z.uuid('ID da entidade deve ser um UUID válido'),
-  externalId: z.string().min(1, 'O external_id é obrigatório'),
+  externalId: z
+    .string()
+    .min(1, 'O external_id é obrigatório')
+    .regex(/^[a-zA-Z0-9_\-:.]+$/, 'O external_id deve conter apenas letras, números, _ - : .'),
   type: z.enum(['info', 'warning', 'critical'], {
     error: 'Tipo deve ser info, warning ou critical',
   }),
