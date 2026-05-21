@@ -1,362 +1,205 @@
-# Desafio Técnico — Fullstack
+# Holocron Sentinel
 
-Você pode escolher entre Node.js e PHP Laravel para o backend.
-Você precisa utilizar Next.js na implementação do frontend.
+Sistema de monitoramento operacional da Aliança Rebelde. Registra eventos associados a entidades estratégicas, aplica regras de suspensão automática por limite crítico, e transmite dados em tempo real via SSE.
 
-## Sistema de Monitoramento da Aliança Rebelde
+## Como rodar o projeto
 
-Antes de tudo: obrigado por topar esse desafio.
+### Pré-requisitos
 
-Este desafio faz parte do nosso processo para a vaga de Engenheiro(a) de Software Pleno — Fullstack.
+- Node.js 20+
+- Docker (para o PostgreSQL)
 
-O objetivo aqui não é avaliar velocidade ou perfeição, mas sim:
+### 1. Subir o banco de dados
 
-- como você estrutura soluções;
-- como toma decisões técnicas;
-- como lida com concorrência e consistência;
-- como conecta backend e frontend de forma coerente.
+```bash
+docker-compose up -d
+```
 
-No segundo momento do processo, vamos conversar sobre sua solução e pedir algumas evoluções ao vivo.
+Isso inicia um PostgreSQL 16 em `localhost:5432` com o banco `holocron_sentinel`.
 
----
+### 2. Backend
 
-## O contexto
+```bash
+cd backend
+npm install
+npx prisma migrate deploy    # aplica as migrations no banco
+npm run dev                  # inicia em http://localhost:3333
+```
 
-Em um universo distante, a Aliança Rebelde mantém um sistema chamado **Holocron Sentinel**, responsável por monitorar entidades estratégicas ao longo da galáxia.
+### 3. Frontend
 
-Essas entidades podem ser:
+```bash
+cd frontend
+npm install
+npm run dev                  # inicia em http://localhost:3000
+```
 
-- planetas;
-- bases rebeldes;
-- naves importantes;
-- ou qualquer outro ponto sensível.
+### 4. Testes
 
-O sistema registra eventos associados a essas entidades, que podem indicar desde atividades rotineiras até ameaças críticas do Império.
+```bash
+cd backend
+npm test
+```
 
-O sistema precisa operar com:
+Os testes rodam contra o banco local (mesmo `DATABASE_URL` do `.env`). São 24 testes de integração cobrindo:
 
-- alto volume de dados;
-- múltiplas requisições simultâneas;
-- consistência mesmo sob concorrência;
-- atualização em tempo real.
-
----
-
-## Conceitos principais
-
-### Entidade monitorada
-
-Representa algo que precisa ser acompanhado continuamente.
-
-Campos:
-
-- `id`
-- `name`
-- `status` (`active` ou `suspended`)
-- `critical_events_count`
-- `created_at`
-- `updated_at`
-
-Regras:
-
-- Toda entidade começa como `active`;
-- Pode ser automaticamente suspensa ao atingir um limite de eventos críticos;
-- Entidades suspensas não devem aceitar novos eventos.
+- Criação, listagem e paginação de entidades
+- Registro de eventos (info, warning, critical)
+- Idempotência por `external_id`
+- Suspensão automática ao atingir o limite crítico
+- Rejeição de eventos em entidades suspensas
+- Reset do contador ao reativar
+- Ranking de entidades críticas
+- Histórico paginado de eventos por entidade
 
 ---
 
-### Evento
+## Stack
 
-Representa uma ocorrência associada a uma entidade.
-
-Campos:
-
-- `id`
-- `entity_id`
-- `external_id`
-- `type` (`info`, `warning` ou `critical`)
-- `payload` (JSON livre)
-- `created_at`
-
-Regras:
-
-- Eventos só podem ser registrados para entidades ativas;
-- Eventos do tipo `critical` incrementam o contador da entidade;
-- Um mesmo `external_id` não pode ser processado duas vezes, mesmo com múltiplas requisições simultâneas.
+| Camada    | Tecnologia                                                            |
+| --------- | --------------------------------------------------------------------- |
+| Backend   | Node.js + TypeScript, Fastify, Prisma ORM                             |
+| Banco     | PostgreSQL 16 (via Docker)                                            |
+| Frontend  | Next.js 16, React 19, TanStack Table, TanStack Query, Tailwind CSS v4 |
+| Testes    | Vitest (integração contra banco real)                                 |
+| Streaming | Server-Sent Events (SSE)                                              |
 
 ---
 
-## O que você precisa implementar
+## Decisões técnicas
 
-## Backend
+### Fastify + Zod
 
-### 1) Criar entidade monitorada
+Fastify foi escolhido pela performance e pelo ecossistema de plugins. A integração com Zod (`fastify-type-provider-zod`) permite que os schemas de validação sejam a única fonte de verdade — o TypeScript infere os tipos diretamente dos schemas, eliminando interfaces duplicadas.
 
-Endpoint para criação de uma nova entidade monitorada.
+### Prisma com driver adapter (pg)
 
----
+O Prisma é usado para migrations, tipos gerados e queries simples. Para queries complexas (agregações, `SELECT FOR UPDATE`, ranking com `GROUP BY`), usamos raw SQL diretamente via `$queryRaw` / `$queryRawUnsafe`. O driver adapter (`@prisma/adapter-pg`) permite usar um pool de conexões do `pg` nativo, dando controle total sobre conexões.
 
-### 2) Listar entidades monitoradas
+### Next.js 16 (App Router)
 
-A listagem deve retornar, para cada entidade:
+O frontend usa o App Router com Client Components onde há estado/interação. Todas as chamadas à API passam por hooks customizados que encapsulam TanStack Query, garantindo cache, invalidação e loading states consistentes.
 
-- dados básicos da entidade;
-- total de eventos associados;
-- total de eventos críticos;
-- data do último evento registrado.
+### TanStack Table
 
-Atenção à performance:
-
-- considere que podem existir milhares de entidades e milhões de eventos;
-- pense em agregações eficientes.
+A tabela do dashboard usa TanStack Table v8 com paginação client-side. Como o volume esperado é <100 entidades na interface, buscamos tudo em uma request (`limit=100`) e paginamos no client com `getPaginationRowModel()`. Isso simplifica filtros e ordenação sem roundtrips ao servidor.
 
 ---
 
-### 3) Registrar evento
+## Concorrência e idempotência
 
-Este é o coração do sistema e merece atenção especial.
+O endpoint `POST /events` é o coração do sistema e resolve três problemas simultaneamente:
 
-Esse endpoint deve:
+### 1. Idempotência por `external_id`
 
-- ser idempotente;
-- ser seguro sob concorrência;
-- garantir consistência mesmo com múltiplas requisições simultâneas;
-- suspender automaticamente a entidade quando o limite de eventos críticos for atingido.
+O campo `external_id` tem constraint `UNIQUE` no banco. O fluxo é:
 
-Fique à vontade para usar quaisquer estratégias que julgar adequadas.
+1. **Verificação rápida** antes da transação: `findUnique({ where: { externalId } })`. Se existe, retorna `200` com o evento original — sem abrir transação nem adquirir lock.
+2. **Proteção contra race condition**: se duas requests passarem pela verificação ao mesmo tempo, a constraint UNIQUE do banco rejeita a segunda com `P2002`. O erro é capturado e tratado como duplicata.
 
-O mais importante é conseguir explicar suas escolhas.
+Essa abordagem em duas camadas (cache check + constraint) garante idempotência mesmo sob alta concorrência, sem locks desnecessários para o caso comum (duplicatas).
 
----
+### 2. Lock pessimista na entidade
 
-### 4) Ranking de entidades críticas
+Dentro da transação, a entidade é lida com `SELECT FOR UPDATE`. Isso trava a linha no PostgreSQL até o fim da transação, impedindo que duas requests concorrentes leiam o mesmo `critical_events_count` e ambas decidam não suspender.
 
-Endpoint que deve:
+### 3. Suspensão atômica
 
-- retornar as entidades com mais eventos críticos nos últimos 7 dias;
-- ordenar do mais crítico para o menos crítico;
-- ser pensado para grandes volumes de dados.
+A verificação do limite e a atualização do status acontecem na mesma transação:
 
----
+```
+BEGIN
+  SELECT ... FOR UPDATE              -- trava a entidade
+  INSERT INTO events (...)           -- cria o evento
+  UPDATE entities SET status = ...   -- suspende se atingiu o limite
+COMMIT
+```
 
-### 5) Streaming de eventos
-
-Implemente um endpoint de streaming em tempo real.
-
-Você pode usar:
-
-- Server-Sent Events (SSE), recomendado;
-- WebSocket;
-- ou outra estratégia, desde que explique a escolha.
-
-Exemplo:
-
-`GET /events/stream`
-
-Esse endpoint deve:
-
-- enviar eventos conforme são registrados;
-- permitir múltiplos clientes conectados;
-- manter consistência básica dos dados enviados;
-- lidar minimamente com desconexão de clientes.
+Se o limite for atingido, o status muda para `suspended` dentro da mesma transação que criou o evento. Não há janela onde outro evento poderia ser aceito entre a verificação e a suspensão.
 
 ---
 
-## Frontend
+## Streaming (SSE)
 
-Crie uma interface simples para operadores do sistema.
+### Por que SSE em vez de WebSocket?
 
----
+- **Unidirecional**: o frontend só precisa receber eventos, não enviar. SSE é mais simples para esse caso.
+- **Reconexão nativa**: o `EventSource` do browser reconecta automaticamente ao perder conexão.
+- **Compatibilidade**: funciona sobre HTTP/1.1 padrão, sem upgrade de protocolo.
 
-### 1) Dashboard de entidades
+### Arquitetura
 
-Tela com:
+```
+POST /events → EventService.create() → eventBus.emit('new-event', data)
+                                              ↓
+GET /events/stream → EventSource ← eventBus.on('new-event', write)
+```
 
-- lista de entidades monitoradas;
-- status (`active` ou `suspended`);
-- total de eventos;
-- total de eventos críticos;
-- data do último evento registrado;
-- destaque visual para entidades suspensas ou próximas do limite crítico.
+O backend usa um `EventEmitter` do Node.js como barramento interno. Quando um evento é criado com sucesso, ele é emitido no barramento. Cada conexão SSE registra um listener que escreve no stream do cliente.
 
----
+**Heartbeat**: a cada 30 segundos, um comentário SSE (`:heartbeat\n\n`) é enviado para evitar que proxies fechem conexões ociosas.
 
-### 2) Registro manual de evento
+**Cleanup**: quando o cliente desconecta, o listener é removido do barramento e o intervalo do heartbeat é limpo, evitando memory leaks.
 
-Formulário para registrar um evento.
-
-O formulário deve permitir:
-
-- selecionar uma entidade;
-- informar o `external_id`;
-- escolher o tipo do evento;
-- enviar um `payload` JSON.
-
-A interface deve:
-
-- mostrar sucesso;
-- mostrar erro;
-- evidenciar quando um evento duplicado foi ignorado por idempotência.
-
----
-
-### 3) Feed de eventos em tempo real
-
-Tela ou componente com:
-
-- lista dos eventos recentes;
-- atualização automática via streaming;
-- recebimento de novos eventos sem recarregar a página.
-
-O frontend deve consumir o endpoint de streaming e atualizar a UI de forma incremental.
-
----
-
-### 4) Ranking de entidades críticas
-
-Exibir o ranking de entidades críticas retornado pela API.
-
----
-
-## Requisitos técnicos esperados
-
-### Backend
-
-- Node.js ou PHP Laravel;
-- Se for utilizar Node.js, deve usar TypeScript e é permitido utilizar qualquer framework;
-- Se for utilizar o PHP Laravel, deve utilizar o Laravel 13;
-- Banco relacional, preferencialmente PostgreSQL ou MySQL;
-- Código organizado e com separação clara de responsabilidades.
-
----
+**Limitação**: como usa `EventEmitter` local, o SSE só funciona em instância única. Em produção com múltiplos servidores, seria necessário Redis Pub/Sub ou similar.
 
 ### Frontend
 
-- Next.js;
-- TypeScript;
-- Organização clara de componentes;
-- Separação entre UI, estado e chamadas de API;
-- Tratamento de loading, erro e estado vazio.
+O hook `useEventStream` gerencia a conexão SSE com:
 
----
-
-## Arquitetura e organização
-
-Esperamos ver:
-
-- controllers/handlers simples, sem regra de negócio pesada;
-- boa separação de responsabilidades;
-- código fácil de entender e evoluir;
-- decisões técnicas conscientes e explicáveis.
+- Buffer circular de 100 eventos (evita consumo crescente de memória)
+- Deduplicação por `event.id` (proteção contra re-entrega)
+- Backoff exponencial na reconexão (1s → 2s → 4s → ... → 30s max)
+- Controles de pause/resume/clear
 
 ---
 
 ## Performance
 
-Esperamos que você:
+### Índices
 
-- pense em índices, agregações e consultas eficientes;
-- considere impacto das decisões em cenários de alto volume.
+O schema define índices estratégicos:
 
----
+| Índice                          | Finalidade                                           |
+| ------------------------------- | ---------------------------------------------------- |
+| `entities(status)`              | Filtro por status na listagem                        |
+| `events(entity_id, created_at)` | Listagem de eventos por entidade, ordenados por data |
+| `events(type, created_at)`      | Ranking: busca eventos críticos dos últimos 7 dias   |
+| `events(external_id)` UNIQUE    | Idempotência: lookup rápido por external_id          |
 
-## Concorrência e consistência
+### Agregações eficientes
 
-Esperamos que você:
+A listagem de entidades usa subqueries correlacionadas em vez de N+1:
 
-- trate race conditions de forma explícita;
-- garanta comportamento correto sob carga;
-- use estratégias compatíveis com o banco e a arquitetura escolhida;
-- explique as decisões tomadas.
+```sql
+SELECT e.*,
+  (SELECT COUNT(*) FROM events WHERE entity_id = e.id) AS total_events,
+  (SELECT MAX(created_at) FROM events WHERE entity_id = e.id) AS last_event_at
+FROM entities e
+```
 
----
+O PostgreSQL resolve cada subquery usando o índice `events(entity_id, created_at)`, resultando em index-only scans para entidades com muitos eventos.
 
-## Streaming e tempo real
+### Ranking
 
-Esperamos que você:
-
-- implemente uma estratégia funcional de atualização em tempo real;
-- explique a escolha entre SSE, WebSocket ou outra abordagem;
-- trate múltiplos clientes conectados;
-- considere reconexão, duplicidade e consistência da UI.
-
----
-
-## Testes
-
-Implemente testes para os fluxos principais.
-
-Os testes devem validar regras de negócio, não apenas status HTTP.
+O ranking dos últimos 7 dias usa `INNER JOIN` com filtro temporal + `GROUP BY`, resolvido pelo índice composto `events(type, created_at)`. O PostgreSQL filtra primeiro por `type = 'critical'` e depois pelo range de datas, tudo via índice.
 
 ---
 
-## Documentação
+## O que faria diferente em produção
 
-Inclua um `README.md` explicando:
+1. **Redis Pub/Sub para SSE**: substituir o `EventEmitter` local por Redis para suportar múltiplas instâncias do backend.
 
-- como rodar o projeto;
-- principais decisões técnicas;
-- estratégia de concorrência e idempotência;
-- como funciona o streaming;
-- pontos de atenção sobre performance;
-- o que você faria diferente em um cenário real de produção.
+2. **Banco de testes separado**: usar um `DATABASE_URL` diferente para testes, com reset automático entre suites. Hoje os testes rodam no banco de desenvolvimento.
 
----
+3. **Rate limiting**: proteger o `POST /events` com rate limiting por IP/token para evitar abuso.
 
-## Diferenciais
+4. **Materializar o ranking**: para volumes muito grandes, pré-computar o ranking em uma tabela materializada atualizada por cron ou trigger, em vez de calcular a cada request.
 
-Não são obrigatórios, mas podem demonstrar maturidade técnica:
+5. **Observabilidade**: logs estruturados (pino/winston), métricas de latência por endpoint, e tracing distribuído para debugar problemas em produção.
 
-- Docker;
-- filas;
-- cache;
-- paginação;
-- filtros;
-- reconexão automática no streaming;
-- atualização otimista ou incremental da UI;
-- logs estruturados;
-- métricas simples;
-- testes de frontend.
+6. **Cache HTTP**: adicionar `Cache-Control` e `ETag` nas rotas de listagem para reduzir carga no banco quando o frontend re-fetcha.
 
----
+7. **Paginação server-side no frontend**: com milhares de entidades, paginar no servidor em vez de trazer tudo com `limit=100`.
 
-## O que vamos avaliar
-
-### Backend
-
-- clareza e organização do código;
-- separação de responsabilidades;
-- qualidade das decisões técnicas;
-- preocupação com performance;
-- tratamento de concorrência e consistência;
-- capacidade de explicar comportamento sob carga.
-
-### Frontend
-
-- organização dos componentes;
-- clareza do fluxo de dados;
-- consumo correto da API;
-- tratamento de loading, erro e estado vazio;
-- uso correto de streaming;
-- experiência mínima de uso.
-
-### Fullstack
-
-- coerência entre backend e frontend;
-- entendimento do fluxo completo;
-- capacidade de manter a interface consistente com eventos em tempo real;
-- clareza ao explicar decisões e trade-offs.
-
----
-
-## Por fim
-
-Este desafio:
-
-- usa um domínio totalmente fictício;
-- não será reaproveitado em nenhum produto real;
-- existe exclusivamente para fins avaliativos.
-
-Queremos entender como você pensa como engenheiro(a).
-
-Que a Força esteja com você — e nos vemos na conversa do segundo dia.
+8. **Testes de concorrência**: testes que disparam N requests simultâneas para validar o comportamento sob carga real (k6 ou Artillery).

@@ -275,7 +275,7 @@ export default function DashboardPage() {
     [toggleStatus.isPending],
   )
 
-  // TanStack Table
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filtered,
     columns,

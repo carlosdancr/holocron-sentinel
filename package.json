@@ -1,7 +1,7 @@
 {
-  "name": "escavador-challenge",
+  "name": "holocron-sentinel",
   "version": "1.0.0",
-  "description": "Você pode escolher entre Node.js e PHP Laravel para o backend. Você precisa utilizar Next.js na implementação do frontend.",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "format": "prettier --write .",

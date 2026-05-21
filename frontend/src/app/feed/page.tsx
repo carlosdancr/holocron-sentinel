@@ -125,26 +125,28 @@ export default function FeedPage() {
           {/* Feed list ou empty state */}
           {filtered.length === 0 ? (
             <div className="flex flex-1 min-h-0 items-center justify-center">
-            <EmptyState
-              icon={<Activity size={24} strokeWidth={1.6} />}
-              title={typeFilter === 'all' ? 'Aguardando eventos...' : 'Nenhum evento neste filtro'}
-              description={
-                typeFilter === 'all'
-                  ? 'O stream esta conectado. Novos eventos aparecerao aqui assim que forem registrados.'
-                  : 'Tente trocar para "Tudo" ou esperar por novos eventos do tipo selecionado.'
-              }
-              action={
-                paused ? (
-                  <button
-                    onClick={resume}
-                    className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2"
-                  >
-                    <Play size={12} strokeWidth={1.6} />
-                    Retomar stream
-                  </button>
-                ) : undefined
-              }
-            />
+              <EmptyState
+                icon={<Activity size={24} strokeWidth={1.6} />}
+                title={
+                  typeFilter === 'all' ? 'Aguardando eventos...' : 'Nenhum evento neste filtro'
+                }
+                description={
+                  typeFilter === 'all'
+                    ? 'O stream esta conectado. Novos eventos aparecerao aqui assim que forem registrados.'
+                    : 'Tente trocar para "Tudo" ou esperar por novos eventos do tipo selecionado.'
+                }
+                action={
+                  paused ? (
+                    <button
+                      onClick={resume}
+                      className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2"
+                    >
+                      <Play size={12} strokeWidth={1.6} />
+                      Retomar stream
+                    </button>
+                  ) : undefined
+                }
+              />
             </div>
           ) : (
             <div className="flex flex-1 min-h-0 flex-col overflow-auto">
