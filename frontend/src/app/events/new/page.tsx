@@ -230,7 +230,7 @@ export default function EventFormPage() {
       />
 
       <div className="flex-1 overflow-auto px-9 py-6 pb-12">
-        <div className="grid grid-cols-[1fr_360px] items-start gap-6">
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_360px]">
           {/* Card do formulario */}
           <div className="animate-fade-in-up overflow-hidden rounded-md border border-border bg-surface shadow-sm">
             {/* Card header */}

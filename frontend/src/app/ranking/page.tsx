@@ -85,11 +85,13 @@ export default function RankingPage() {
 
           {/* Ranking list ou empty state */}
           {ranked.length === 0 ? (
-            <EmptyState
-              icon={<Shield size={24} strokeWidth={1.6} />}
-              title="Sem eventos críticos no período"
-              description="Nenhuma entidade registrou eventos críticos na janela selecionada. Boa notícia."
-            />
+            <div className="flex flex-1 min-h-0 items-center justify-center">
+              <EmptyState
+                icon={<Shield size={24} strokeWidth={1.6} />}
+                title="Sem eventos críticos no período"
+                description="Nenhuma entidade registrou eventos críticos na janela selecionada. Boa notícia."
+              />
+            </div>
           ) : (
             <div className="flex flex-1 min-h-0 flex-col overflow-auto">
               {ranked.map((entity, i) => {
