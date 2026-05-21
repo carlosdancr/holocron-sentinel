@@ -97,7 +97,15 @@ export function AppShell({ children }: AppShellProps) {
               className="grid h-8 w-8 place-items-center rounded-sm transition-colors duration-120 hover:bg-surface-2"
               title="Abrir menu"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              >
                 <line x1="2" y1="4" x2="14" y2="4" />
                 <line x1="2" y1="8" x2="14" y2="8" />
                 <line x1="2" y1="12" x2="14" y2="12" />

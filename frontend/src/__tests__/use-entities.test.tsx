@@ -84,10 +84,9 @@ describe('useEntities', () => {
       },
     })
 
-    const { result } = renderHook(
-      () => useEntities({ page: 2, search: 'Hoth', sort: 'name' }),
-      { wrapper: createWrapper() },
-    )
+    const { result } = renderHook(() => useEntities({ page: 2, search: 'Hoth', sort: 'name' }), {
+      wrapper: createWrapper(),
+    })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 

@@ -280,9 +280,10 @@ export default function DashboardPage() {
       pagination: { pageIndex: page - 1, pageSize: PAGE_SIZE },
     },
     onPaginationChange: (updater) => {
-      const next = typeof updater === 'function'
-        ? updater({ pageIndex: page - 1, pageSize: PAGE_SIZE })
-        : updater
+      const next =
+        typeof updater === 'function'
+          ? updater({ pageIndex: page - 1, pageSize: PAGE_SIZE })
+          : updater
       setPage(next.pageIndex + 1)
     },
   })
@@ -432,7 +433,12 @@ export default function DashboardPage() {
               />
             </div>
           ) : (
-            <div className={cn('flex-1 min-h-0 overflow-auto', isPlaceholderData && 'opacity-60 transition-opacity duration-200')}>
+            <div
+              className={cn(
+                'flex-1 min-h-0 overflow-auto',
+                isPlaceholderData && 'opacity-60 transition-opacity duration-200',
+              )}
+            >
               <table className="w-full border-collapse text-[13px]">
                 <thead>
                   {table.getHeaderGroups().map((headerGroup) => (

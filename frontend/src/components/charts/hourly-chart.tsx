@@ -63,10 +63,7 @@ function ChartTooltip({
 // ===== Componente principal =====
 
 export function HourlyChart({ hourlyActivity, last24h }: HourlyChartProps) {
-  const peak = useMemo(
-    () => Math.max(1, ...hourlyActivity.map((b) => b.total)),
-    [hourlyActivity],
-  )
+  const peak = useMemo(() => Math.max(1, ...hourlyActivity.map((b) => b.total)), [hourlyActivity])
 
   // Mostrar apenas alguns labels no eixo X para nao poluir
   const visibleTicks = ['-23h', '-18h', '-12h', '-6h', 'agora']
@@ -96,7 +93,9 @@ export function HourlyChart({ hourlyActivity, last24h }: HourlyChartProps) {
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">
               Warning
             </div>
-            <div className="text-[15px] font-semibold tabular-nums text-warning">{last24h.warning}</div>
+            <div className="text-[15px] font-semibold tabular-nums text-warning">
+              {last24h.warning}
+            </div>
           </div>
           <div className="text-right">
             <div className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-text-faint">

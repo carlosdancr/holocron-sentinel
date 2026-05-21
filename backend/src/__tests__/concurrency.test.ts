@@ -33,9 +33,7 @@ function fireParallel(
     payload?: Record<string, unknown>
   },
 ) {
-  return Promise.all(
-    Array.from({ length: count }, (_, i) => createEvent(app, makePayload(i))),
-  )
+  return Promise.all(Array.from({ length: count }, (_, i) => createEvent(app, makePayload(i))))
 }
 
 // ─────────────────────────────────────────────────────────

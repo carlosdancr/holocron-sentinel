@@ -76,7 +76,11 @@ const ENTITIES = [
 // ═══════════════════════════════════════════════
 
 const INFO_PAYLOADS = [
-  { signal_strength: 92, source: 'sensor_grid_7', notes: 'Leitura de rotina confirmada pelo operador.' },
+  {
+    signal_strength: 92,
+    source: 'sensor_grid_7',
+    notes: 'Leitura de rotina confirmada pelo operador.',
+  },
   { frequency: '138.2 MHz', bandwidth: 'nominal', operator: 'K-2SO' },
   { scan_type: 'perimetro', sectors_clear: 12, sectors_total: 12 },
   { crew_count: 47, morale: 'estável', supplies_days: 18 },
@@ -146,9 +150,7 @@ async function main() {
 
   // Cria entidades
   const entities = await Promise.all(
-    ENTITIES.map((name) =>
-      prisma.entity.create({ data: { name } }),
-    ),
+    ENTITIES.map((name) => prisma.entity.create({ data: { name } })),
   )
   console.log(`✅ ${entities.length} entidades criadas.\n`)
 
@@ -232,7 +234,9 @@ async function main() {
   console.log(`   Entidades:       ${entities.length}`)
   console.log(`   Eventos totais:  ${totalEvents}`)
   console.log(`   Eventos críticos: ${totalCritical}`)
-  console.log(`   Suspensas:       ${entities.length} × ~20% = ~${Math.round(entities.length * 0.2)}`)
+  console.log(
+    `   Suspensas:       ${entities.length} × ~20% = ~${Math.round(entities.length * 0.2)}`,
+  )
   console.log(`\n✨ Seed concluído! Que a Força esteja com você.`)
 }
 

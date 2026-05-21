@@ -8,9 +8,11 @@ import { PageHeader } from '@/components/layout/page-header'
 import { KpiCard } from '@/components/ui/kpi-card'
 import { EntityAvatar } from '@/components/ui/entity-avatar'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { ThreatMeter } from '@/components/ui/threat-meter'
 import { EmptyState } from '@/components/ui/empty-state'
 
 import { useRanking } from '@/hooks/use-ranking'
+import { CRITICAL_EVENTS_LIMIT } from '@/lib/constants'
 import { formatRelative } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -20,9 +22,6 @@ export default function RankingPage() {
   const router = useRouter()
   const { data: rankingData, dataUpdatedAt } = useRanking({ limit: 12 })
   const ranked = useMemo(() => rankingData?.data ?? [], [rankingData])
-
-  // Valor maximo para barra proporcional
-  const max = ranked[0]?.recentCriticalCount ?? 1
 
   // KPIs
   const totalCrit = useMemo(
@@ -46,11 +45,19 @@ export default function RankingPage() {
           <KpiCard
             label="Entidade mais crítica"
             value={ranked[0]?.name ?? '—'}
-            footer={ranked[0] ? `${ranked[0].recentCriticalCount} eventos críticos` : 'sem dados'}
+            footer={
+              ranked[0]
+                ? `${ranked[0].criticalEventsCount}/${CRITICAL_EVENTS_LIMIT} eventos críticos (total)`
+                : 'sem dados'
+            }
             hero
             valueClassName="!text-[22px] !leading-tight"
           />
-          <KpiCard label="Total no período" value={totalCrit} footer="eventos críticos agregados" />
+          <KpiCard
+            label="Total nos últimos 7 dias"
+            value={totalCrit}
+            footer="eventos críticos no período"
+          />
           <KpiCard
             label="Entidades no ranking"
             value={ranked.length}
@@ -93,70 +100,71 @@ export default function RankingPage() {
               />
             </div>
           ) : (
-            <div className="flex flex-1 min-h-0 flex-col overflow-auto">
-              {ranked.map((entity, i) => {
-                const pct = (entity.recentCriticalCount / max) * 100
-
-                return (
-                  <div
-                    key={entity.id}
-                    onClick={() => router.push(`/entities/${entity.id}`)}
-                    className={cn(
-                      'grid cursor-pointer items-center gap-4 border-b border-border px-4.5 py-3 text-[13px] transition-colors duration-120 last:border-b-0 hover:bg-surface-2/50',
-                    )}
-                    style={{
-                      gridTemplateColumns: '36px 1fr auto 160px 90px',
-                    }}
-                  >
-                    {/* Posicao */}
-                    <span
-                      className={cn(
-                        'grid h-7.5 w-7.5 place-items-center rounded-[8px] font-mono text-[12.5px] font-bold',
-                        i === 0
-                          ? 'bg-brand text-brand-ink'
-                          : i === 1
-                            ? 'bg-surface-2 text-text'
-                            : i === 2
-                              ? 'bg-surface-2 text-text-muted'
-                              : 'text-text-faint',
-                      )}
+            <div className="flex-1 min-h-0 overflow-auto">
+              <table className="w-full border-collapse text-[13px]">
+                <thead>
+                  <tr>
+                    <th className="sticky top-0 z-10 border-b border-border bg-surface-2 px-4 py-2.5 text-left text-[11.5px] font-medium uppercase tracking-[0.04em] text-text-muted">
+                      Entidade
+                    </th>
+                    <th className="sticky top-0 z-10 border-b border-border bg-surface-2 px-4 py-2.5 text-left text-[11.5px] font-medium uppercase tracking-[0.04em] text-text-muted">
+                      Status
+                    </th>
+                    <th className="sticky top-0 z-10 border-b border-border bg-surface-2 px-4 py-2.5 text-left text-[11.5px] font-medium uppercase tracking-[0.04em] text-text-muted">
+                      Eventos críticos
+                    </th>
+                    <th className="sticky top-0 z-10 border-b border-border bg-surface-2 px-4 py-2.5 text-right text-[11.5px] font-medium uppercase tracking-[0.04em] text-text-muted">
+                      Últimos 7 dias
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranked.map((entity, i) => (
+                    <tr
+                      key={entity.id}
+                      className="cursor-pointer border-b border-border transition-colors duration-120 last:border-b-0 hover:bg-surface-2/30"
+                      onClick={() => router.push(`/entities/${entity.id}`)}
                     >
-                      {i + 1}
-                    </span>
-
-                    {/* Entidade */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <EntityAvatar name={entity.name} size={30} />
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">{entity.name}</div>
-                        <div className="truncate font-mono text-[11px] text-text-faint">
-                          {entity.id}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={cn(
+                              'grid h-7.5 w-7.5 shrink-0 place-items-center rounded-[8px] font-mono text-[12.5px] font-bold',
+                              i === 0
+                                ? 'bg-brand text-brand-ink'
+                                : i === 1
+                                  ? 'bg-surface-2 text-text'
+                                  : i === 2
+                                    ? 'bg-surface-2 text-text-muted'
+                                    : 'text-text-faint',
+                            )}
+                          >
+                            {i + 1}
+                          </span>
+                          <EntityAvatar name={entity.name} size={30} />
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">{entity.name}</div>
+                            <div className="truncate font-mono text-[11px] text-text-faint">
+                              {entity.id.slice(0, 8)}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <StatusBadge status={entity.status} />
-
-                    {/* Barra proporcional */}
-                    <div className="h-1.5 w-full rounded-full bg-surface-2">
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition-all duration-500',
-                          i === 0 ? 'bg-critical' : i < 3 ? 'bg-warning' : 'bg-info',
-                        )}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-
-                    {/* Contagem */}
-                    <div className="text-right font-mono text-[12.5px]">
-                      <span className="font-bold">{entity.recentCriticalCount}</span>
-                      <span className="text-text-faint"> eventos</span>
-                    </div>
-                  </div>
-                )
-              })}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={entity.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <ThreatMeter count={entity.criticalEventsCount} />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-mono text-[12.5px] tabular-nums">
+                          {entity.recentCriticalCount}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 

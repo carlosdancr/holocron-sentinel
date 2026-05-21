@@ -70,10 +70,11 @@ export default function EntityDetailPage({ params }: PageProps) {
 
   // Paginação server-side
   const [eventPage, setEventPage] = useState(1)
-  const {
-    data: eventsData,
-    isPlaceholderData,
-  } = useEntityEvents({ entityId: id, page: eventPage, limit: EVENTS_PER_PAGE })
+  const { data: eventsData, isPlaceholderData } = useEntityEvents({
+    entityId: id,
+    page: eventPage,
+    limit: EVENTS_PER_PAGE,
+  })
 
   const events = useMemo(() => eventsData?.data ?? [], [eventsData])
   const pagination = eventsData?.pagination
@@ -311,10 +312,12 @@ export default function EntityDetailPage({ params }: PageProps) {
                   />
                 </div>
               ) : (
-                <div className={cn(
-                  'flex min-h-[536px] flex-col',
-                  isPlaceholderData && 'opacity-60 transition-opacity duration-200',
-                )}>
+                <div
+                  className={cn(
+                    'flex min-h-[536px] flex-col',
+                    isPlaceholderData && 'opacity-60 transition-opacity duration-200',
+                  )}
+                >
                   {events.map((ev) => {
                     const isExpanded = expandedEvent === ev.id
 

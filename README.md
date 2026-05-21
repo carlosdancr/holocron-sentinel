@@ -87,13 +87,13 @@ São 33 testes unitários com Vitest + React Testing Library cobrindo:
 
 ## Stack
 
-| Camada    | Tecnologia                                                            |
-| --------- | --------------------------------------------------------------------- |
-| Backend   | Node.js + TypeScript, Fastify, Prisma ORM                             |
-| Banco     | PostgreSQL 16 (via Docker)                                            |
-| Frontend  | Next.js 16, React 19, TanStack Table, TanStack Query, Tailwind CSS v4 |
+| Camada    | Tecnologia                                                                  |
+| --------- | --------------------------------------------------------------------------- |
+| Backend   | Node.js + TypeScript, Fastify, Prisma ORM                                   |
+| Banco     | PostgreSQL 16 (via Docker)                                                  |
+| Frontend  | Next.js 16, React 19, TanStack Table, TanStack Query, Tailwind CSS v4       |
 | Testes    | Vitest — integração (backend) + unitários (frontend, React Testing Library) |
-| Streaming | Server-Sent Events (SSE)                                              |
+| Streaming | Server-Sent Events (SSE)                                                    |
 
 ---
 

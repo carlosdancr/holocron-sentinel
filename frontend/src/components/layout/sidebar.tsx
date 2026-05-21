@@ -2,7 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Radio, BarChart3, Send, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Radio,
+  BarChart3,
+  Send,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -105,12 +112,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* Botao de colapsar */}
-      <div
-        className={cn(
-          'border-t border-border py-3',
-          collapsed ? 'px-1.5' : 'px-2.5',
-        )}
-      >
+      <div className={cn('border-t border-border py-3', collapsed ? 'px-1.5' : 'px-2.5')}>
         <button
           onClick={onToggle}
           title={collapsed ? 'Expandir menu' : 'Colapsar menu'}
