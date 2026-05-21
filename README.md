@@ -9,6 +9,10 @@ Sistema de monitoramento operacional da Aliança Rebelde. Registra eventos assoc
 - Node.js 20+
 - Docker (para o PostgreSQL)
 
+### Variáveis de ambiente
+
+Os arquivos `.env` (`backend/.env`, `backend/.env.test` e `frontend/.env.local`) foram commitados intencionalmente para que o projeto funcione sem nenhuma configuração manual. Eles contêm apenas credenciais do banco local via Docker e a URL do backend — nenhum dado sensível ou de produção.
+
 ### 1. Subir o banco de dados
 
 ```bash
