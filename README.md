@@ -36,6 +36,8 @@ npm run dev                  # inicia em http://localhost:3000
 
 ### 4. Testes
 
+#### Backend
+
 ```bash
 cd backend
 npm test
@@ -52,6 +54,19 @@ Os testes rodam contra o banco local (mesmo `DATABASE_URL` do `.env`). São 24 t
 - Ranking de entidades críticas
 - Histórico paginado de eventos por entidade
 
+#### Frontend
+
+```bash
+cd frontend
+npm test
+```
+
+São 32 testes unitários com Vitest + React Testing Library cobrindo:
+
+- **Utilitários** (`cn`, `formatRelative`, `formatTime`, `formatDateTime`, `formatDate`) — funções puras com edge cases (null, diferenças de tempo, formatos pt-BR)
+- **Hooks de API** (`useEntities`, `useRanking`, `useCreateEntity`, `useCreateEvent`, `useToggleEntityStatus`) — chamadas corretas ao backend, passagem de parâmetros, tratamento de sucesso/erro, flags de idempotência e suspensão
+- **Hook SSE** (`useEventStream`) — conexão, recebimento de eventos, deduplicação por ID, limite de buffer (100), pause/resume/clear, backoff exponencial na reconexão, remoção de flag de animação
+
 ---
 
 ## Stack
@@ -61,7 +76,7 @@ Os testes rodam contra o banco local (mesmo `DATABASE_URL` do `.env`). São 24 t
 | Backend   | Node.js + TypeScript, Fastify, Prisma ORM                             |
 | Banco     | PostgreSQL 16 (via Docker)                                            |
 | Frontend  | Next.js 16, React 19, TanStack Table, TanStack Query, Tailwind CSS v4 |
-| Testes    | Vitest (integração contra banco real)                                 |
+| Testes    | Vitest — integração (backend) + unitários (frontend, React Testing Library) |
 | Streaming | Server-Sent Events (SSE)                                              |
 
 ---
