@@ -26,6 +26,7 @@ Isso inicia um PostgreSQL 16 em `localhost:5432` com o banco `holocron_sentinel`
 ```bash
 cd backend
 npm install
+npx prisma generate          # gera o Prisma Client
 npx prisma migrate deploy    # aplica as migrations no banco
 npm run dev                  # inicia em http://localhost:3333
 ```
