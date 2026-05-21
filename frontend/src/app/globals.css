@@ -39,8 +39,8 @@
   --radius-lg: 14px;
 
   /* Tipografia — referencia as CSS vars das fontes do Next.js */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 
   /* Animacao de entrada */
   --animate-fade-in-up: fade-in-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
@@ -133,9 +133,6 @@ body {
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: -0.005em;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
 }
 
 /* ===== Scrollbar customizada ===== */
