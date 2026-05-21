@@ -13,10 +13,7 @@ import {
   Send,
   Activity,
   Loader2,
-  Ban,
-  RotateCcw,
 } from 'lucide-react'
-import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/page-header'
 import { EntityAvatar } from '@/components/ui/entity-avatar'
@@ -30,7 +27,6 @@ import { HourlyChart } from '@/components/charts/hourly-chart'
 
 import { useEntity } from '@/hooks/use-entity'
 import { useEntityEvents } from '@/hooks/use-entity-events'
-import { useToggleEntityStatus } from '@/hooks/use-toggle-entity-status'
 import { formatDateTime, formatRelative, formatTime } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { CRITICAL_EVENTS_LIMIT } from '@/lib/constants'
@@ -66,7 +62,6 @@ export default function EntityDetailPage({ params }: PageProps) {
   const router = useRouter()
 
   const { data: entity, isLoading, error } = useEntity(id)
-  const toggleStatus = useToggleEntityStatus()
 
   // Paginação server-side
   const [eventPage, setEventPage] = useState(1)
@@ -99,27 +94,6 @@ export default function EntityDetailPage({ params }: PageProps) {
   const totalEvents = pagination?.total ?? 0
   const eventsFrom = totalEvents > 0 ? (eventPage - 1) * EVENTS_PER_PAGE + 1 : 0
   const eventsTo = Math.min(eventPage * EVENTS_PER_PAGE, totalEvents)
-
-  // Toggle status handler
-  const handleToggleStatus = () => {
-    if (!entity) return
-    const newStatus = isSuspended ? 'active' : 'suspended'
-    toggleStatus.mutate(
-      { id: entity.id, status: newStatus },
-      {
-        onSuccess: () => {
-          toast.success(
-            newStatus === 'active'
-              ? 'A entidade foi reativada com sucesso.'
-              : 'A entidade foi suspensa com sucesso.',
-          )
-        },
-        onError: () => {
-          toast.error('Não foi possível alterar o status da entidade.')
-        },
-      },
-    )
-  }
 
   // Loading state
   if (isLoading) {
@@ -182,29 +156,14 @@ export default function EntityDetailPage({ params }: PageProps) {
           </span>
         }
         actions={
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={handleToggleStatus}
-              disabled={toggleStatus.isPending}
-              className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isSuspended ? (
-                <RotateCcw size={13} strokeWidth={1.6} />
-              ) : (
-                <Ban size={13} strokeWidth={1.6} />
-              )}
-              {isSuspended ? 'Reativar' : 'Suspender'}
-            </button>
-
-            <button
-              onClick={() => router.push(`/events/new?entityId=${entity.id}`)}
-              disabled={isSuspended}
-              className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Send size={13} strokeWidth={1.6} />
-              Registrar evento
-            </button>
-          </div>
+          <button
+            onClick={() => router.push(`/events/new?entityId=${entity.id}`)}
+            disabled={isSuspended}
+            className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Send size={13} strokeWidth={1.6} />
+            Registrar evento
+          </button>
         }
       />
 

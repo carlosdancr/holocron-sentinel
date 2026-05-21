@@ -124,7 +124,6 @@ Os testes rodam contra um banco dedicado (`holocron_sentinel_test`), separado do
 - Idempotência por `external_id`
 - Suspensão automática ao atingir o limite crítico
 - Rejeição de eventos em entidades suspensas
-- Reset do contador ao reativar
 - Ranking de entidades críticas
 - Histórico paginado de eventos por entidade
 - **Concorrência real** — 6 testes que disparam múltiplas requests simultâneas:

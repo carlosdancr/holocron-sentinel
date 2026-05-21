@@ -19,11 +19,6 @@ export const entityParamsSchema = z.object({
   id: z.uuid(),
 })
 
-// Schema para o body do PATCH /entities/:id (toggle de status)
-export const updateEntityStatusSchema = z.object({
-  status: z.enum(['active', 'suspended']),
-})
-
 // ===== Response schemas (para documentação OpenAPI) =====
 
 export const entityResponseSchema = z.object({
@@ -69,4 +64,3 @@ export const errorResponseSchema = z.object({
 export type CreateEntityInput = z.infer<typeof createEntitySchema>
 export type ListEntitiesInput = z.infer<typeof listEntitiesSchema>
 export type EntityParams = z.infer<typeof entityParamsSchema>
-export type UpdateEntityStatusInput = z.infer<typeof updateEntityStatusSchema>

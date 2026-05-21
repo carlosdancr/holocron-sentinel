@@ -45,10 +45,7 @@ await app.register(scalarAPIReference, {
   },
 })
 
-await app.register(cors, {
-  origin: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-})
+await app.register(cors, { origin: true })
 
 // Registra as rotas
 await app.register(entityRoutes)

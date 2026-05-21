@@ -42,30 +42,30 @@ export async function eventRoutes(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-    try {
-      const result = await eventService.create(request.body)
+      try {
+        const result = await eventService.create(request.body)
 
-      // 200 para duplicado, 201 para criado
-      const statusCode = result.status === 'created' ? 201 : 200
+        // 200 para duplicado, 201 para criado
+        const statusCode = result.status === 'created' ? 201 : 200
 
-      return reply.status(statusCode).send({
-        event: result.event,
-        status: result.status,
-        entitySuspended: result.entitySuspended,
-      })
-    } catch (error) {
-      if (error instanceof EntityNotFoundError) {
-        return reply.status(404).send({ error: error.message })
+        return reply.status(statusCode).send({
+          event: result.event,
+          status: result.status,
+          entitySuspended: result.entitySuspended,
+        })
+      } catch (error) {
+        if (error instanceof EntityNotFoundError) {
+          return reply.status(404).send({ error: error.message })
+        }
+
+        if (error instanceof EntitySuspendedError) {
+          return reply.status(422).send({ error: error.message })
+        }
+
+        // Erro inesperado — deixa o Fastify tratar (retorna 500)
+        throw error
       }
-
-      if (error instanceof EntitySuspendedError) {
-        return reply.status(422).send({ error: error.message })
-      }
-
-      // Erro inesperado — deixa o Fastify tratar (retorna 500)
-      throw error
-    }
-  },
+    },
   )
 
   // GET /entities/:entityId/events — historico de eventos de uma entidade

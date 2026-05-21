@@ -53,12 +53,14 @@ describe('POST /events — registro básico', () => {
   it('rejeita evento para entidade suspensa (422)', async () => {
     const entity = await createEntity(app)
 
-    // Suspende a entidade manualmente
-    await app.inject({
-      method: 'PATCH',
-      url: `/entities/${entity.id}`,
-      payload: { status: 'suspended' },
-    })
+    // Suspende a entidade via suspensão automática (10 eventos críticos)
+    for (let i = 0; i < CRITICAL_EVENTS_LIMIT; i++) {
+      await createEvent(app, {
+        entityId: entity.id,
+        externalId: `crit_suspend_${i}`,
+        type: 'critical',
+      })
+    }
 
     const { statusCode } = await createEvent(app, {
       entityId: entity.id,

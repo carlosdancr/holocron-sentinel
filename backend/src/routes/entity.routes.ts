@@ -5,7 +5,6 @@ import {
   createEntitySchema,
   entityParamsSchema,
   listEntitiesSchema,
-  updateEntityStatusSchema,
   entityResponseSchema,
   entityDetailResponseSchema,
   listEntitiesResponseSchema,
@@ -78,35 +77,6 @@ export async function entityRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params
       const entity = await entityService.findById(id)
-
-      if (!entity) {
-        return reply.status(404).send({ error: 'Entidade não encontrada.' })
-      }
-
-      return reply.send(entity)
-    },
-  )
-
-  // PATCH /entities/:id — alterar status da entidade (suspender/reativar)
-  typedApp.patch(
-    '/entities/:id',
-    {
-      schema: {
-        tags: ['Entity'],
-        summary: 'Alterar status da entidade',
-        params: entityParamsSchema,
-        body: updateEntityStatusSchema,
-        response: {
-          200: entityResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    },
-    async (request, reply) => {
-      const { id } = request.params
-      const { status } = request.body
-
-      const entity = await entityService.updateStatus(id, status)
 
       if (!entity) {
         return reply.status(404).send({ error: 'Entidade não encontrada.' })

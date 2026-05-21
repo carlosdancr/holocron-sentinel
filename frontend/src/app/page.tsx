@@ -21,7 +21,6 @@ import { EmptyState } from '@/components/ui/empty-state'
 
 import { useEntities } from '@/hooks/use-entities'
 import { useCreateEntity } from '@/hooks/use-create-entity'
-import { useToggleEntityStatus } from '@/hooks/use-toggle-entity-status'
 
 import { CRITICAL_EVENTS_LIMIT } from '@/lib/constants'
 import { formatRelative } from '@/lib/utils'
@@ -130,7 +129,6 @@ const columnHelper = createColumnHelper<Entity>()
 
 export default function DashboardPage() {
   const router = useRouter()
-  const toggleStatus = useToggleEntityStatus()
 
   // Controles de filtro/paginação — server-side
   const [page, setPage] = useState(1)
@@ -182,26 +180,6 @@ export default function DashboardPage() {
     [summary],
   )
 
-  // Toggle status com toast
-  function handleToggleStatus(entity: Entity) {
-    const newStatus = entity.status === 'active' ? 'suspended' : 'active'
-    toggleStatus.mutate(
-      { id: entity.id, status: newStatus },
-      {
-        onSuccess: () => {
-          toast.success(
-            newStatus === 'suspended'
-              ? `A entidade ${entity.name} foi suspensa com sucesso.`
-              : `A entidade ${entity.name} foi reativada com sucesso.`,
-          )
-        },
-        onError: () => {
-          toast.error('Não foi possível alterar o status da entidade.')
-        },
-      },
-    )
-  }
-
   // Colunas definidas dentro do componente para acessar handlers
   const columns = useMemo(
     () => [
@@ -243,29 +221,8 @@ export default function DashboardPage() {
           <span className="text-[12.5px] text-text-muted">{formatRelative(getValue())}</span>
         ),
       }),
-      columnHelper.display({
-        id: 'actions',
-        header: '',
-        meta: { width: 'w-20' },
-        cell: ({ row }) => {
-          const entity = row.original
-          return (
-            <div onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => handleToggleStatus(entity)}
-                disabled={toggleStatus.isPending}
-                title={entity.status === 'active' ? 'Suspender entidade' : 'Reativar entidade'}
-                className="inline-flex h-7 cursor-pointer items-center rounded-sm border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {entity.status === 'active' ? 'Suspender' : 'Reativar'}
-              </button>
-            </div>
-          )
-        },
-      }),
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [toggleStatus.isPending],
+    [],
   )
 
   // TanStack Table com paginação manual (server-side)
