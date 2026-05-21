@@ -1,7 +1,8 @@
 import { prisma } from '../lib/prisma.js'
 import type { CreateEntityInput, ListEntitiesInput } from '../schemas/entity.schemas.js'
 import type { RankingInput } from '../schemas/ranking.schemas.js'
-export class EntityService {
+
+class EntityService {
   /**
    * Cria uma nova entidade monitorada.
    * Toda entidade começa com status "active" e zero eventos críticos.
@@ -279,3 +280,6 @@ export class EntityService {
     return updated
   }
 }
+
+// Singleton — instância única reutilizada por todas as rotas
+export const entityService = new EntityService()

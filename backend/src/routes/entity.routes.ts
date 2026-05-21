@@ -1,14 +1,12 @@
 import { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { EntityService } from '../services/entity.service.js'
+import { entityService } from '../services/entity.service.js'
 import {
   createEntitySchema,
   entityParamsSchema,
   listEntitiesSchema,
   updateEntityStatusSchema,
 } from '../schemas/entity.schemas.js'
-
-const entityService = new EntityService()
 
 export async function entityRoutes(app: FastifyInstance) {
   const typedApp = app.withTypeProvider<ZodTypeProvider>()

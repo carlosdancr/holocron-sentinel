@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
-  EventService,
+  eventService,
   EntityNotFoundError,
   EntitySuspendedError,
 } from '../services/event.service.js'
@@ -10,8 +10,6 @@ import {
   listEntityEventsParamsSchema,
   listEntityEventsQuerySchema,
 } from '../schemas/event.schemas.js'
-
-const eventService = new EventService()
 
 export async function eventRoutes(app: FastifyInstance) {
   const typedApp = app.withTypeProvider<ZodTypeProvider>()

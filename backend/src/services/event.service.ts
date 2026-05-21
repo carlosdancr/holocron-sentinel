@@ -17,7 +17,7 @@ interface EventResult {
   entitySuspended: boolean
 }
 
-export class EventService {
+class EventService {
   /**
    * Registra um evento associado a uma entidade.
    *
@@ -258,6 +258,9 @@ export class EventService {
     }
   }
 }
+
+// Singleton — instância única reutilizada por todas as rotas
+export const eventService = new EventService()
 
 // ─── Erros customizados ───
 // Erros com nome específico facilitam o tratamento na rota
