@@ -10,7 +10,8 @@
     "test": "vitest",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "simulate": "tsx scripts/simulate.ts"
   },
   "keywords": [],
   "author": "",

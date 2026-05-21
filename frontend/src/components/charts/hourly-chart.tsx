@@ -111,7 +111,7 @@ export function HourlyChart({ hourlyActivity, last24h }: HourlyChartProps) {
       {/* Chart */}
       <div className="px-2 pt-4 pb-1">
         <ResponsiveContainer width="100%" height={180}>
-          <AreaChart data={hourlyActivity} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <AreaChart data={hourlyActivity} margin={{ top: 4, right: 24, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#FAE231" stopOpacity={0.55} />

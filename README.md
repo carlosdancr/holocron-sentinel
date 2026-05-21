@@ -60,7 +60,33 @@ npm run seed                 # popula o banco com dados de exemplo
 
 Insere 50 entidades temáticas de Star Wars (planetas, bases, estações orbitais, naves capitais e caças) e ~1.200 eventos variados (info, warning, critical) com payloads realistas. Algumas entidades (~20%) são automaticamente suspensas por atingirem o limite crítico. Útil para validar o dashboard, ranking e feed sem precisar cadastrar dados manualmente.
 
-### 4. Frontend
+### 4. Simulador de eventos em tempo real (opcional)
+
+```bash
+cd backend
+npm run simulate               # padrão: 1-3s entre eventos
+```
+
+Envia eventos continuamente via `POST /events` para entidades ativas, permitindo acompanhar o feed SSE atualizando em tempo real. Cada evento tem tipo e payload aleatórios com temática Star Wars.
+
+**Modos disponíveis:**
+
+| Flag              | Intervalo   | Descrição                                            |
+| ----------------- | ----------- | ---------------------------------------------------- |
+| _(nenhuma)_       | 1–3s        | Ritmo padrão de monitoramento                        |
+| `--fast`          | 0.3–1s      | Rajada de eventos para teste de carga                |
+| `--slow`          | 3–8s        | Ritmo calmo para acompanhar evento a evento          |
+| `--critical-bias` | _(combina)_ | ~40% dos eventos são `critical` (acelera suspensões) |
+
+Os flags podem ser combinados:
+
+```bash
+npm run simulate -- --fast --critical-bias
+```
+
+O simulador detecta suspensões automáticas, remove entidades suspensas da lista local e recarrega as entidades ativas periodicamente. Encerra automaticamente quando todas forem suspensas.
+
+### 5. Frontend
 
 ```bash
 cd frontend
@@ -68,7 +94,7 @@ npm install
 npm run dev                  # inicia em http://localhost:3000
 ```
 
-### 4. Testes
+### 6. Testes
 
 #### Backend
 
