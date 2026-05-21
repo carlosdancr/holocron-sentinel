@@ -86,7 +86,7 @@ export default function EntityDetailPage({ params }: PageProps) {
   // Derivados
   const isSuspended = entity?.status === 'suspended'
   const isNearLimit =
-    !isSuspended && (entity?.criticalEventsCount ?? 0) >= CRITICAL_EVENTS_LIMIT * 0.7
+    !isSuspended && (entity?.criticalEventsCount ?? 0) >= CRITICAL_EVENTS_LIMIT - 1
 
   // KPIs vindos do summary (server-side)
   const last24hStats = useMemo(
@@ -237,7 +237,7 @@ export default function EntityDetailPage({ params }: PageProps) {
               </div>
               <div className="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
                 {entity.criticalEventsCount} de {CRITICAL_EVENTS_LIMIT} eventos críticos. A próxima
-                ocorrência crítica pode acionar a suspensão automática.
+                ocorrência crítica acionará a suspensão automática.
               </div>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function EntityDetailPage({ params }: PageProps) {
               ) : (
                 <div
                   className={cn(
-                    'flex min-h-[536px] flex-col',
+                    'flex min-h-134 flex-col',
                     isPlaceholderData && 'opacity-60 transition-opacity duration-200',
                   )}
                 >

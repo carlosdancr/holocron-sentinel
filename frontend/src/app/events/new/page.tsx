@@ -335,7 +335,7 @@ export default function EventFormPage() {
                 </select>
                 {errors.entity && <FieldError message={errors.entity} />}
                 {entitySuspended && !errors.entity && (
-                  <FieldError message="Esta entidade esta suspensa — eventos serao rejeitados." />
+                  <FieldError message="Esta entidade esta suspensa — eventos serão rejeitados." />
                 )}
                 {selectedEntity && !entitySuspended && (
                   <div className="flex items-center gap-2 text-[11.5px] text-text-muted">
