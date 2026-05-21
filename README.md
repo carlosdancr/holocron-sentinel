@@ -2,6 +2,26 @@
 
 Sistema de monitoramento operacional da Aliança Rebelde. Registra eventos associados a entidades estratégicas, aplica regras de suspensão automática por limite crítico, e transmite dados em tempo real via SSE.
 
+## Screenshots
+
+### Dashboard — Entidades monitoradas
+
+![Dashboard](docs/dashboard.png)
+
+### Detalhes da entidade
+
+![Detalhes da entidade](docs/entity-detail.png)
+
+### Ranking de entidades críticas
+
+![Ranking](docs/ranking.png)
+
+### Registro de evento
+
+![Registro de evento](docs/register-event.png)
+
+---
+
 ## Como rodar o projeto
 
 ### Pré-requisitos
