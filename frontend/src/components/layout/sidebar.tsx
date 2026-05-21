@@ -9,8 +9,11 @@ import {
   Send,
   PanelLeftClose,
   PanelLeftOpen,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/providers/theme-provider'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,6 +29,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <aside
@@ -111,13 +115,33 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         })}
       </nav>
 
-      {/* Botao de colapsar */}
-      <div className={cn('border-t border-border py-3', collapsed ? 'px-1.5' : 'px-2.5')}>
+      {/* Rodape: tema + colapsar */}
+      <div className={cn('flex flex-col gap-0.5 border-t border-border py-3', collapsed ? 'px-1.5' : 'px-2.5')}>
+        <button
+          onClick={toggleTheme}
+          title={theme === 'light' ? 'Modo escuro' : 'Modo claro'}
+          className={cn(
+            'flex w-full cursor-pointer items-center rounded-sm py-2 text-[13px] font-medium text-text-muted transition-[background,color] duration-120 hover:bg-surface-2 hover:text-text',
+            collapsed ? 'justify-center px-0' : 'gap-2.5 px-2.5',
+          )}
+        >
+          {theme === 'light' ? (
+            <>
+              <Moon size={15} strokeWidth={1.6} />
+              {!collapsed && <span>Modo escuro</span>}
+            </>
+          ) : (
+            <>
+              <Sun size={15} strokeWidth={1.6} />
+              {!collapsed && <span>Modo claro</span>}
+            </>
+          )}
+        </button>
         <button
           onClick={onToggle}
           title={collapsed ? 'Expandir menu' : 'Colapsar menu'}
           className={cn(
-            'flex w-full items-center rounded-sm py-2 text-[13px] font-medium text-text-muted transition-[background,color] duration-120 hover:bg-surface-2 hover:text-text',
+            'flex w-full cursor-pointer items-center rounded-sm py-2 text-[13px] font-medium text-text-muted transition-[background,color] duration-120 hover:bg-surface-2 hover:text-text',
             collapsed ? 'justify-center px-0' : 'gap-2.5 px-2.5',
           )}
         >

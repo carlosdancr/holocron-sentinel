@@ -4,34 +4,34 @@
 
 @theme inline {
   /* Brand */
-  --color-brand: #fae231;
-  --color-brand-ink: #1a1a0c;
-  --color-brand-soft: #fff8c2;
+  --color-brand: var(--t-brand);
+  --color-brand-ink: var(--t-brand-ink);
+  --color-brand-soft: var(--t-brand-soft);
 
   /* Neutrals */
-  --color-bg: #fafaf7;
-  --color-surface: #ffffff;
-  --color-surface-2: #f5f4ee;
-  --color-border: #e8e6de;
-  --color-border-strong: #d8d5ca;
-  --color-text: #0f1115;
-  --color-text-muted: #6b6b63;
-  --color-text-faint: #9c9b92;
+  --color-bg: var(--t-bg);
+  --color-surface: var(--t-surface);
+  --color-surface-2: var(--t-surface-2);
+  --color-border: var(--t-border);
+  --color-border-strong: var(--t-border-strong);
+  --color-text: var(--t-text);
+  --color-text-muted: var(--t-text-muted);
+  --color-text-faint: var(--t-text-faint);
 
   /* Severidade */
-  --color-info: #2563eb;
-  --color-info-bg: #eff4ff;
-  --color-warning: #b45309;
-  --color-warning-bg: #fef6e1;
-  --color-critical: #b91c1c;
-  --color-critical-bg: #fdecec;
-  --color-success: #15803d;
-  --color-success-bg: #e8f5ec;
+  --color-info: var(--t-info);
+  --color-info-bg: var(--t-info-bg);
+  --color-warning: var(--t-warning);
+  --color-warning-bg: var(--t-warning-bg);
+  --color-critical: var(--t-critical);
+  --color-critical-bg: var(--t-critical-bg);
+  --color-success: var(--t-success);
+  --color-success-bg: var(--t-success-bg);
 
   /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(15, 17, 21, 0.04);
-  --shadow-md: 0 1px 2px rgba(15, 17, 21, 0.04), 0 4px 12px rgba(15, 17, 21, 0.05);
-  --shadow-lg: 0 8px 32px rgba(15, 17, 21, 0.08);
+  --shadow-sm: var(--t-shadow-sm);
+  --shadow-md: var(--t-shadow-md);
+  --shadow-lg: var(--t-shadow-lg);
 
   /* Raios de borda */
   --radius-sm: 6px;
@@ -46,7 +46,86 @@
   --animate-fade-in-up: fade-in-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
+/* ===== Light theme (default) ===== */
+
+:root {
+  --t-brand: #fae231;
+  --t-brand-ink: #1a1a0c;
+  --t-brand-soft: #fff8c2;
+
+  --t-bg: #fafaf7;
+  --t-surface: #ffffff;
+  --t-surface-2: #f5f4ee;
+  --t-border: #e8e6de;
+  --t-border-strong: #d8d5ca;
+  --t-text: #0f1115;
+  --t-text-muted: #6b6b63;
+  --t-text-faint: #9c9b92;
+
+  --t-info: #2563eb;
+  --t-info-bg: #eff4ff;
+  --t-warning: #b45309;
+  --t-warning-bg: #fef6e1;
+  --t-critical: #b91c1c;
+  --t-critical-bg: #fdecec;
+  --t-success: #15803d;
+  --t-success-bg: #e8f5ec;
+
+  --t-shadow-sm: 0 1px 2px rgba(15, 17, 21, 0.04);
+  --t-shadow-md: 0 1px 2px rgba(15, 17, 21, 0.04), 0 4px 12px rgba(15, 17, 21, 0.05);
+  --t-shadow-lg: 0 8px 32px rgba(15, 17, 21, 0.08);
+
+  /* JSON syntax highlighting */
+  --json-key: #7c3aed;
+  --json-string: #15803d;
+  --json-number: #2563eb;
+  --json-bool: #b45309;
+}
+
+/* ===== Dark theme ===== */
+
+.dark {
+  --t-brand: #fae231;
+  --t-brand-ink: #1a1a0c;
+  --t-brand-soft: #3d3a1a;
+
+  --t-bg: #09090b;
+  --t-surface: #111113;
+  --t-surface-2: #1a1a1e;
+  --t-border: #27272a;
+  --t-border-strong: #3f3f46;
+  --t-text: #f4f4f5;
+  --t-text-muted: #a1a1aa;
+  --t-text-faint: #71717a;
+
+  --t-info: #60a5fa;
+  --t-info-bg: #172554;
+  --t-warning: #f59e0b;
+  --t-warning-bg: #451a03;
+  --t-critical: #f87171;
+  --t-critical-bg: #450a0a;
+  --t-success: #4ade80;
+  --t-success-bg: #052e16;
+
+  --t-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --t-shadow-md: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --t-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  --json-key: #c4b5fd;
+  --json-string: #86efac;
+  --json-number: #93c5fd;
+  --json-bool: #fcd34d;
+}
+
 /* ===== Base ===== */
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
 
 body {
   background: var(--color-bg);
@@ -54,6 +133,9 @@ body {
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: -0.005em;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 /* ===== Scrollbar customizada ===== */
@@ -145,16 +227,16 @@ body {
 }
 
 .json-block .k {
-  color: #7c3aed;
+  color: var(--json-key);
 } /* chaves (roxo) */
 .json-block .s {
-  color: #15803d;
+  color: var(--json-string);
 } /* strings (verde) */
 .json-block .n {
-  color: #2563eb;
+  color: var(--json-number);
 } /* numeros (azul) */
 .json-block .b {
-  color: #b45309;
+  color: var(--json-bool);
 } /* booleans/null (ambar) */
 
 @keyframes fade-in-up {
