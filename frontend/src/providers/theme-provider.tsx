@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useSyncExternalStore } from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -16,31 +16,52 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 const STORAGE_KEY = 'holocron-theme'
 
+// Store externo para evitar setState dentro de useEffect
+let currentTheme: Theme = 'light'
+const listeners = new Set<() => void>()
+
+function getTheme(): Theme {
+  return currentTheme
+}
+
+function getServerTheme(): Theme {
+  return 'light'
+}
+
+function setThemeExternal(next: Theme) {
+  if (next === currentTheme) return
+  currentTheme = next
+  document.documentElement.classList.toggle('dark', next === 'dark')
+  localStorage.setItem(STORAGE_KEY, next)
+  listeners.forEach((l) => l())
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+// Inicializa no client antes do primeiro render
+if (typeof window !== 'undefined') {
+  const stored = localStorage.getItem(STORAGE_KEY) as Theme | null
+  if (stored === 'light' || stored === 'dark') {
+    currentTheme = stored
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    currentTheme = 'dark'
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light')
-  const [mounted, setMounted] = useState(false)
+  const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme)
 
-  // Inicializa o tema a partir do localStorage ou preferência do sistema
+  // Sincroniza a classe no <html> quando o tema muda
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null
-    if (stored === 'light' || stored === 'dark') {
-      setTheme(stored)
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark')
-    }
-    setMounted(true)
-  }, [])
-
-  // Aplica a classe no <html>
-  useEffect(() => {
-    if (!mounted) return
-    const root = document.documentElement
-    root.classList.toggle('dark', theme === 'dark')
+    document.documentElement.classList.toggle('dark', theme === 'dark')
     localStorage.setItem(STORAGE_KEY, theme)
-  }, [theme, mounted])
+  }, [theme])
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+    setThemeExternal(currentTheme === 'light' ? 'dark' : 'light')
   }, [])
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>

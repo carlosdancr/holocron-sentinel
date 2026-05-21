@@ -13,7 +13,7 @@ export function KpiCard({ label, value, footer, hero = false, valueClassName }: 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-[10px] border px-[18px] py-4',
+        'relative overflow-hidden rounded-md border px-4.5 py-4',
         hero ? 'border-transparent bg-brand text-brand-ink' : 'border-border bg-surface',
       )}
     >

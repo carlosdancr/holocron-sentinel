@@ -69,9 +69,9 @@ export function HourlyChart({ hourlyActivity, last24h }: HourlyChartProps) {
   const visibleTicks = ['-23h', '-18h', '-12h', '-6h', 'agora']
 
   return (
-    <div className="animate-fade-in-up [animation-delay:60ms] overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm mb-[18px]">
+    <div className="animate-fade-in-up [animation-delay:60ms] overflow-hidden rounded-md border border-border bg-surface shadow-sm mb-4.5">
       {/* Header */}
-      <div className="flex items-start justify-between border-b border-border px-[18px] py-3.5">
+      <div className="flex items-start justify-between border-b border-border px-4.5 py-3.5">
         <div>
           <h3 className="text-[14.5px] font-semibold">Atividade (últimas 24h)</h3>
           <p className="mt-0.5 text-xs text-text-muted">Volume total de eventos por hora.</p>

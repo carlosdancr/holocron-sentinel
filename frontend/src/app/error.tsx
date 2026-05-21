@@ -22,18 +22,18 @@ export default function GlobalError({
       </span>
       <h2 className="text-[18px] font-semibold">Algo deu errado</h2>
       <p className="max-w-sm text-center text-[13.5px] text-text-muted">
-        Ocorreu um erro inesperado ao carregar esta pagina. Tente novamente ou retorne ao dashboard.
+        Ocorreu um erro inesperado ao carregar esta página. Tente novamente ou retorne ao dashboard.
       </p>
       <div className="mt-2 flex items-center gap-2.5">
         <button
           onClick={reset}
-          className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-brand bg-brand px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-[120ms] hover:opacity-90"
+          className="inline-flex h-8.5 items-center gap-1.75 rounded-lg border border-brand bg-brand px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-120 hover:opacity-90"
         >
           Tentar novamente
         </button>
         <Link
           href="/"
-          className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong"
+          className="inline-flex h-8.5 items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong"
         >
           Voltar ao dashboard
         </Link>

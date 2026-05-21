@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
-import { Toaster } from 'sonner'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
+import { ThemedToaster } from '@/components/ui/themed-toaster'
 import { AppShell } from '@/components/layout/app-shell'
 import './globals.css'
 
@@ -18,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'Holocron Sentinel',
-  description: 'Sistema de monitoramento operacional — Alianca Rebelde',
+  description: 'Sistema de monitoramento operacional — Aliança Rebelde',
 }
 
 export default function RootLayout({
@@ -44,8 +44,8 @@ export default function RootLayout({
           <QueryProvider>
             <AppShell>{children}</AppShell>
           </QueryProvider>
+          <ThemedToaster />
         </ThemeProvider>
-        <Toaster position="bottom-right" richColors theme="system" />
       </body>
     </html>
   )

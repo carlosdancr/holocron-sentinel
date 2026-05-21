@@ -36,7 +36,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <aside
       className={cn(
         'flex h-screen flex-col border-r border-border bg-surface transition-[width] duration-200 ease-in-out',
-        collapsed ? 'w-[60px]' : 'w-[264px]',
+        collapsed ? 'w-15' : 'w-66',
       )}
       style={{ position: 'sticky', top: 0 }}
     >
@@ -112,7 +112,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* Rodape: tema + colapsar */}
-      <div className={cn('flex flex-col gap-0.5 border-t border-border py-3', collapsed ? 'px-1.5' : 'px-2.5')}>
+      <div
+        className={cn(
+          'flex flex-col gap-0.5 border-t border-border py-3',
+          collapsed ? 'px-1.5' : 'px-2.5',
+        )}
+      >
         <button
           onClick={toggleTheme}
           title={theme === 'light' ? 'Modo escuro' : 'Modo claro'}

@@ -79,7 +79,7 @@ export default function FeedPage() {
             <LivePill status={pillStatus} />
             <button
               onClick={paused ? resume : pause}
-              className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong"
+              className="inline-flex h-8.5 items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong"
             >
               {paused ? (
                 <Play size={13} strokeWidth={1.6} />
@@ -91,7 +91,7 @@ export default function FeedPage() {
             <button
               onClick={clear}
               disabled={events.length === 0}
-              className="inline-flex h-[34px] items-center gap-[7px] rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-[120ms] hover:bg-surface-2 hover:border-border-strong disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex h-8.5 items-center gap-1.75 rounded-lg border border-border bg-surface px-3.5 text-[13px] font-medium transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 size={13} strokeWidth={1.6} />
               Limpar
@@ -101,7 +101,7 @@ export default function FeedPage() {
       />
 
       <div className="flex flex-1 min-h-0 flex-col overflow-hidden px-9 py-6">
-        <div className="animate-fade-in-up flex min-h-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
+        <div className="animate-fade-in-up flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border bg-surface shadow-sm">
           {/* Controls bar */}
           <div className="shrink-0 flex flex-wrap items-center gap-2.5 border-b border-border px-3.5 py-3">
             <ChipGroup
@@ -132,14 +132,14 @@ export default function FeedPage() {
                 }
                 description={
                   typeFilter === 'all'
-                    ? 'O stream esta conectado. Novos eventos aparecerao aqui assim que forem registrados.'
+                    ? 'O stream está conectado. Novos eventos aparecerão aqui assim que forem registrados.'
                     : 'Tente trocar para "Tudo" ou esperar por novos eventos do tipo selecionado.'
                 }
                 action={
                   paused ? (
                     <button
                       onClick={resume}
-                      className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2"
+                      className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-120 hover:bg-surface-2"
                     >
                       <Play size={12} strokeWidth={1.6} />
                       Retomar stream
@@ -160,7 +160,7 @@ export default function FeedPage() {
                     {/* Feed row */}
                     <div
                       className={cn(
-                        'grid items-center gap-3.5 border-b border-border px-[18px] py-3 text-[13px] last:border-b-0',
+                        'grid items-center gap-3.5 border-b border-border px-4.5 py-3 text-[13px] last:border-b-0',
                         item.__new && 'feed-row-new',
                       )}
                       style={{ gridTemplateColumns: '80px 32px 1fr auto' }}
@@ -173,7 +173,7 @@ export default function FeedPage() {
                       {/* Icone de severidade */}
                       <span
                         className={cn(
-                          'grid h-[26px] w-[26px] place-items-center rounded-[7px]',
+                          'grid h-6.5 w-6.5 place-items-center rounded-[7px]',
                           SEVERITY_ICON_STYLES[ev.type],
                         )}
                       >
@@ -206,7 +206,7 @@ export default function FeedPage() {
                       {/* Toggle payload */}
                       <button
                         onClick={() => setExpandedPayload(isExpanded ? null : ev.id)}
-                        className="inline-flex h-7 items-center rounded-[6px] border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-[120ms] hover:bg-surface-2"
+                        className="inline-flex h-7 items-center rounded-sm border border-border bg-surface px-2.5 text-[12.5px] font-medium transition-colors duration-120 hover:bg-surface-2"
                       >
                         {isExpanded ? 'Ocultar' : 'Payload'}
                       </button>
@@ -214,7 +214,7 @@ export default function FeedPage() {
 
                     {/* Payload expandido */}
                     {isExpanded && (
-                      <div className="pb-4 pl-[130px] pr-[18px] mt-3">
+                      <div className="pb-4 pl-32.5 pr-4.5 mt-3">
                         <JsonView data={ev.payload} />
                       </div>
                     )}

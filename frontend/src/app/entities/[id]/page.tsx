@@ -405,7 +405,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                           className={cn(
                             'inline-flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 font-mono text-xs font-medium transition-colors duration-120',
                             i + 1 === eventPage
-                              ? 'bg-text text-surface'
+                              ? 'bg-brand text-brand-ink'
                               : 'border border-border bg-surface text-text-muted hover:bg-surface-2 hover:border-border-strong',
                           )}
                         >

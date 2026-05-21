@@ -9,9 +9,7 @@ export function Logo({ size = 28 }: LogoProps) {
 
   return (
     <div
-      className={cn(
-        'relative grid shrink-0 place-items-center rounded-[8px] bg-brand',
-      )}
+      className={cn('relative grid shrink-0 place-items-center rounded-[8px] bg-brand')}
       style={{
         width: size,
         height: size,
@@ -34,10 +32,7 @@ export function Logo({ size = 28 }: LogoProps) {
           fillOpacity={0.85}
         />
         {/* Inner diamond / holocron core */}
-        <path
-          d="M12 7l3.5 5L12 17l-3.5-5L12 7z"
-          fill="var(--color-brand)"
-        />
+        <path d="M12 7l3.5 5L12 17l-3.5-5L12 7z" fill="var(--color-brand)" />
         {/* Center dot */}
         <circle cx="12" cy="12" r="1.5" fill="var(--color-brand-ink)" />
       </svg>

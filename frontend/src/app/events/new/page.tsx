@@ -271,14 +271,14 @@ export default function EventFormPage() {
                 <ResultAlert
                   variant="warning"
                   icon={<AlertTriangle size={12} />}
-                  title="Evento duplicado — idempotencia aplicada"
+                  title="Evento duplicado — idempotência aplicada"
                   description={
                     <>
                       Um evento com{' '}
                       <code className="font-mono font-semibold">
                         external_id={lastResult.externalId}
                       </code>{' '}
-                      ja foi processado. Retornando o registro existente{' '}
+                      já foi processado. Retornando o registro existente{' '}
                       <code className="font-mono font-semibold">
                         {lastResult.eventId?.slice(0, 8)}
                       </code>{' '}
@@ -294,8 +294,8 @@ export default function EventFormPage() {
                   title="Evento rejeitado"
                   description={
                     lastResult.kind === 'suspended'
-                      ? 'A entidade esta suspensa e nao aceita novos eventos.'
-                      : lastResult.message || 'Falha na submissao.'
+                      ? 'A entidade está suspensa e não aceita novos eventos.'
+                      : lastResult.message || 'Falha na submissão.'
                   }
                 />
               )}
@@ -335,12 +335,12 @@ export default function EventFormPage() {
                 </select>
                 {errors.entity && <FieldError message={errors.entity} />}
                 {entitySuspended && !errors.entity && (
-                  <FieldError message="Esta entidade esta suspensa — eventos serão rejeitados." />
+                  <FieldError message="Esta entidade está suspensa — eventos serão rejeitados." />
                 )}
                 {selectedEntity && !entitySuspended && (
                   <div className="flex items-center gap-2 text-[11.5px] text-text-muted">
                     <EntityAvatar name={selectedEntity.name} size={20} />
-                    {selectedEntity.criticalEventsCount}/{CRITICAL_EVENTS_LIMIT} eventos criticos
+                    {selectedEntity.criticalEventsCount}/{CRITICAL_EVENTS_LIMIT} eventos críticos
                   </div>
                 )}
               </div>
@@ -364,7 +364,7 @@ export default function EventFormPage() {
                   <button
                     type="button"
                     onClick={genExternalId}
-                    title="Gerar ID aleatorio"
+                    title="Gerar ID aleatório"
                     className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-lg border border-border bg-surface transition-colors duration-120 hover:bg-surface-2 hover:border-border-strong"
                   >
                     <RefreshCw size={13} strokeWidth={1.6} />

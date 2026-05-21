@@ -37,9 +37,9 @@ export function LivePill({ status = 'connected', label }: LivePillProps) {
   const config = STATUS_CONFIG[status]
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-2 px-2.5 py-[5px] pl-2 font-mono text-xs font-medium text-text-muted">
+    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-2 px-2.5 py-1.25 pl-2 font-mono text-xs font-medium text-text-muted">
       <span
-        className={cn('h-[7px] w-[7px] rounded-full', config.dotClass)}
+        className={cn('h-1.75 w-1.75 rounded-full', config.dotClass)}
         style={{ animation: config.animation }}
       />
       {label || config.label}

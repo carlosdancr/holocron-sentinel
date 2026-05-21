@@ -20,7 +20,7 @@ export function TypeBadge({ type }: TypeBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-transparent px-[9px] py-[2px] pl-[7px] text-[11.5px] font-medium tracking-[0.005em]',
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-transparent px-2.25 py-0.5 pl-1.75 text-[11.5px] font-medium tracking-[0.005em]',
         TYPE_STYLES[type],
       )}
     >

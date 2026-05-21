@@ -16,7 +16,7 @@ export function ThreatMeter({ count, limit = CRITICAL_EVENTS_LIMIT }: ThreatMete
   return (
     <span className="inline-flex items-center gap-2">
       {/* Barra */}
-      <span className="h-[5px] w-20 overflow-hidden rounded-full border border-border bg-surface-2">
+      <span className="h-1.25 w-20 overflow-hidden rounded-full border border-border bg-surface-2">
         <span
           className={cn('block h-full transition-[width] duration-200', colorClass)}
           style={{ width: `${pct}%` }}

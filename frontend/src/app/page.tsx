@@ -358,7 +358,7 @@ export default function DashboardPage() {
           {/* Filter bar */}
           <div className="flex flex-wrap items-center gap-2.5 border-b border-border px-3.5 py-3">
             {/* Busca */}
-            <div className="flex min-w-60 max-w-95 flex-1 items-center gap-2 rounded-[6px] border border-border bg-surface px-3 transition-[border-color,box-shadow] duration-120 focus-within:border-text focus-within:shadow-[0_0_0_3px_rgba(15,17,21,0.05)]">
+            <div className="flex min-w-60 max-w-95 flex-1 items-center gap-2 rounded-sm border border-border bg-surface px-3 transition-[border-color,box-shadow] duration-120 focus-within:border-text focus-within:shadow-[0_0_0_3px_rgba(15,17,21,0.05)]">
               <Search size={14} className="shrink-0 text-text-muted" strokeWidth={1.6} />
               <input
                 type="text"
@@ -387,7 +387,7 @@ export default function DashboardPage() {
 
             {/* Sort */}
             <select
-              className="ml-auto h-8.5 cursor-pointer appearance-none rounded-[6px] border border-border bg-surface bg-[url('data:image/svg+xml,%3Csvg%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%20fill=%22none%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M3%204.5L6%207.5L9%204.5%22%20stroke=%22%236B6B63%22%20stroke-width=%221.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E')] bg-position-[right_10px_center] bg-no-repeat pl-2.5 pr-7 text-[13px] text-text"
+              className="ml-auto h-8.5 cursor-pointer appearance-none rounded-sm border border-border bg-surface bg-[url('data:image/svg+xml,%3Csvg%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%20fill=%22none%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M3%204.5L6%207.5L9%204.5%22%20stroke=%22%236B6B63%22%20stroke-width=%221.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E')] bg-position-[right_10px_center] bg-no-repeat pl-2.5 pr-7 text-[13px] text-text"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
             >
@@ -400,7 +400,7 @@ export default function DashboardPage() {
             {/* Botão criar entidade */}
             <button
               onClick={() => setDialogOpen(true)}
-              className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-[6px] bg-brand px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-120 hover:bg-[#F7DC0E]"
+              className="inline-flex h-8.5 cursor-pointer items-center gap-1.75 rounded-sm bg-brand px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-120 hover:bg-[#F7DC0E]"
             >
               <Plus size={14} strokeWidth={1.6} />
               Nova entidade
