@@ -7,9 +7,12 @@ import {
 } from '../services/event.service.js'
 import {
   createEventSchema,
+  createEventResponseSchema,
   listEntityEventsParamsSchema,
   listEntityEventsQuerySchema,
+  listEntityEventsResponseSchema,
 } from '../schemas/event.schemas.js'
+import { errorResponseSchema } from '../schemas/entity.schemas.js'
 
 export async function eventRoutes(app: FastifyInstance) {
   const typedApp = app.withTypeProvider<ZodTypeProvider>()
@@ -23,7 +26,22 @@ export async function eventRoutes(app: FastifyInstance) {
    * - 404: entidade não encontrada
    * - 422: entidade suspensa (não aceita novos eventos)
    */
-  typedApp.post('/events', { schema: { body: createEventSchema } }, async (request, reply) => {
+  typedApp.post(
+    '/events',
+    {
+      schema: {
+        tags: ['Event'],
+        summary: 'Registrar evento',
+        body: createEventSchema,
+        response: {
+          201: createEventResponseSchema,
+          200: createEventResponseSchema,
+          404: errorResponseSchema,
+          422: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
     try {
       const result = await eventService.create(request.body)
 
@@ -47,15 +65,21 @@ export async function eventRoutes(app: FastifyInstance) {
       // Erro inesperado — deixa o Fastify tratar (retorna 500)
       throw error
     }
-  })
+  },
+  )
 
   // GET /entities/:entityId/events — historico de eventos de uma entidade
   typedApp.get(
     '/entities/:entityId/events',
     {
       schema: {
+        tags: ['Event'],
+        summary: 'Listar eventos da entidade',
         params: listEntityEventsParamsSchema,
         querystring: listEntityEventsQuerySchema,
+        response: {
+          200: listEntityEventsResponseSchema,
+        },
       },
     },
     async (request, reply) => {

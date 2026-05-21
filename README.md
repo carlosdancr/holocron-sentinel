@@ -22,6 +22,20 @@ Sistema de monitoramento operacional da Aliança Rebelde. Registra eventos assoc
 
 ---
 
+## Documentação da API
+
+A documentação interativa da API é gerada automaticamente a partir dos schemas Zod das rotas, utilizando **OpenAPI 3.0** + **Scalar API Reference**.
+
+Com o backend rodando, acesse:
+
+```
+http://localhost:3333/docs
+```
+
+Todas as rotas estão organizadas por grupo (Entity, Event, Ranking, Stream) com schemas de request/response e a possibilidade de testar endpoints diretamente pela interface.
+
+---
+
 ## Como rodar o projeto
 
 ### Pré-requisitos

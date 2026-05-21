@@ -17,7 +17,15 @@ export async function streamRoutes(app: FastifyInstance) {
    *
    * Cada mensagem começa com "data: " e termina com duas quebras de linha.
    */
-  app.get('/events/stream', async (request, reply) => {
+  app.get(
+    '/events/stream',
+    {
+      schema: {
+        tags: ['Stream'],
+        summary: 'Stream de eventos em tempo real (SSE)',
+      },
+    },
+    async (request, reply) => {
     // Diz ao Fastify que assumimos o controle do response
     reply.hijack()
 
@@ -58,5 +66,6 @@ export async function streamRoutes(app: FastifyInstance) {
       eventBus.off('new-event', onNewEvent)
       reply.raw.end()
     })
-  })
+  },
+  )
 }

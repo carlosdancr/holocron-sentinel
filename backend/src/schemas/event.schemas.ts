@@ -20,9 +20,53 @@ export const listEntityEventsParamsSchema = z.object({
 
 // Schema para query params da listagem de eventos
 export const listEntityEventsQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().int().min(1).max(9999).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(8),
   type: z.enum(['info', 'warning', 'critical']).optional(),
+})
+
+// ===== Response schemas (para documentação OpenAPI) =====
+
+const eventSchema = z.object({
+  id: z.string().uuid(),
+  entityId: z.string().uuid(),
+  externalId: z.string(),
+  type: z.string(),
+  payload: z.unknown(),
+  createdAt: z.date(),
+})
+
+export const createEventResponseSchema = z.object({
+  event: eventSchema,
+  status: z.string(),
+  entitySuspended: z.boolean(),
+})
+
+const hourlyBucketSchema = z.object({
+  label: z.string(),
+  info: z.number().int().min(0),
+  warning: z.number().int().min(0),
+  critical: z.number().int().min(0),
+  total: z.number().int().min(0),
+})
+
+export const listEntityEventsResponseSchema = z.object({
+  data: z.array(eventSchema),
+  pagination: z.object({
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1),
+    total: z.number().int().min(0),
+    totalPages: z.number().int().min(0),
+  }),
+  summary: z.object({
+    last24h: z.object({
+      total: z.number().int().min(0),
+      info: z.number().int().min(0),
+      warning: z.number().int().min(0),
+      critical: z.number().int().min(0),
+    }),
+  }),
+  hourlyActivity: z.array(hourlyBucketSchema),
 })
 
 export type CreateEventInput = z.infer<typeof createEventSchema>
