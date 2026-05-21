@@ -26,7 +26,16 @@ npx prisma migrate deploy    # aplica as migrations no banco
 npm run dev                  # inicia em http://localhost:3333
 ```
 
-### 3. Frontend
+### 3. Seed (opcional)
+
+```bash
+cd backend
+npm run seed                 # popula o banco com dados de exemplo
+```
+
+Insere 50 entidades temáticas de Star Wars (planetas, bases, estações orbitais, naves capitais e caças) e ~1.200 eventos variados (info, warning, critical) com payloads realistas. Algumas entidades (~20%) são automaticamente suspensas por atingirem o limite crítico. Útil para validar o dashboard, ranking e feed sem precisar cadastrar dados manualmente.
+
+### 4. Frontend
 
 ```bash
 cd frontend
