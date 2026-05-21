@@ -43,7 +43,7 @@ cd backend
 npm test
 ```
 
-Os testes rodam contra um banco dedicado (`holocron_sentinel_test`), separado do banco de desenvolvimento. Na primeira execução, o setup global do Vitest cria o banco automaticamente e aplica as migrations. São 24 testes de integração cobrindo:
+Os testes rodam contra um banco dedicado (`holocron_sentinel_test`), separado do banco de desenvolvimento. Na primeira execução, o setup global do Vitest cria o banco automaticamente e aplica as migrations. São 30 testes de integração cobrindo:
 
 - Criação, listagem e paginação de entidades
 - Registro de eventos (info, warning, critical)
@@ -53,6 +53,13 @@ Os testes rodam contra um banco dedicado (`holocron_sentinel_test`), separado do
 - Reset do contador ao reativar
 - Ranking de entidades críticas
 - Histórico paginado de eventos por entidade
+- **Concorrência real** — 6 testes que disparam múltiplas requests simultâneas:
+  - 20 requests com mesmo `external_id` → apenas 1 evento criado, 19 duplicatas
+  - 5 eventos críticos simultâneos → contador exato, sem double-count
+  - Eventos não-críticos simultâneos não incrementam o contador
+  - Limite exato de suspensão sob concorrência → exatamente 1 response com `entitySuspended: true`
+  - Requests além do limite são rejeitadas (422)
+  - Requests simultâneas em entidade já suspensa → todas rejeitadas
 
 #### Frontend
 
@@ -214,5 +221,3 @@ O ranking dos últimos 7 dias usa `INNER JOIN` com filtro temporal + `GROUP BY`,
 5. **Cache HTTP**: adicionar `Cache-Control` e `ETag` nas rotas de listagem para reduzir carga no banco quando o frontend re-fetcha.
 
 6. **Paginação server-side no frontend**: com milhares de entidades, paginar no servidor em vez de trazer tudo com `limit=100`.
-
-7. **Testes de concorrência**: testes que disparam N requests simultâneas para validar o comportamento sob carga real (k6 ou Artillery).

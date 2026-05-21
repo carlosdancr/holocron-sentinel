@@ -52,38 +52,45 @@ export class EventService {
 
     // ─── PASSO 2: Transação com lock pessimista ───
     // Tudo dentro do $transaction é atômico: ou tudo acontece, ou nada acontece
-    const result = await prisma.$transaction(async (tx) => {
-      // 2a. Trava a linha da entidade com SELECT FOR UPDATE
-      // Enquanto essa transação não terminar, nenhuma outra consegue ler essa linha
-      const [entity] = await tx.$queryRawUnsafe<
-        Array<{
-          id: string
-          status: string
-          critical_events_count: number
-        }>
-      >(
-        `SELECT id, status, critical_events_count
-         FROM entities
-         WHERE id = $1
-         FOR UPDATE`,
-        entityId,
-      )
+    //
+    // NOTA sobre P2002 (unique constraint):
+    // No PostgreSQL, quando um erro ocorre dentro de uma transação, ela entra
+    // em estado "aborted" e qualquer query subsequente falha. Por isso o
+    // tratamento de duplicata por race condition é feito FORA da transação —
+    // se o INSERT falhar com P2002, a transação faz rollback e buscamos o
+    // evento existente em uma query separada.
+    let result: EventResult
+    try {
+      result = await prisma.$transaction(async (tx) => {
+        // 2a. Trava a linha da entidade com SELECT FOR UPDATE
+        // Enquanto essa transação não terminar, nenhuma outra consegue ler essa linha
+        const [entity] = await tx.$queryRawUnsafe<
+          Array<{
+            id: string
+            status: string
+            critical_events_count: number
+          }>
+        >(
+          `SELECT id, status, critical_events_count
+           FROM entities
+           WHERE id = $1
+           FOR UPDATE`,
+          entityId,
+        )
 
-      // 2b. Validações dentro do lock (ninguém mais pode alterar a entidade agora)
-      if (!entity) {
-        throw new EntityNotFoundError(entityId)
-      }
+        // 2b. Validações dentro do lock (ninguém mais pode alterar a entidade agora)
+        if (!entity) {
+          throw new EntityNotFoundError(entityId)
+        }
 
-      if (entity.status === 'suspended') {
-        throw new EntitySuspendedError(entityId)
-      }
+        if (entity.status === 'suspended') {
+          throw new EntitySuspendedError(entityId)
+        }
 
-      // 2c. Cria o evento
-      // Se outra requisição com o mesmo external_id passou pela verificação do PASSO 1
-      // ao mesmo tempo, a constraint UNIQUE do banco vai rejeitar aqui
-      let event
-      try {
-        event = await tx.event.create({
+        // 2c. Cria o evento
+        // Se outra requisição com o mesmo external_id passou pela verificação do PASSO 1
+        // ao mesmo tempo, a constraint UNIQUE do banco vai rejeitar aqui
+        const event = await tx.event.create({
           data: {
             entityId,
             externalId,
@@ -91,51 +98,52 @@ export class EventService {
             payload: (payload ?? {}) as object,
           },
         })
-      } catch (error: unknown) {
-        // Trata erro de duplicidade (constraint UNIQUE violada)
-        // Código P2002 é o erro do Prisma para unique constraint violation
-        if (
-          typeof error === 'object' &&
-          error !== null &&
-          'code' in error &&
-          error.code === 'P2002'
-        ) {
-          const duplicate = await tx.event.findUnique({
-            where: { externalId },
+
+        // 2d. Se o evento é crítico, incrementa o contador e verifica suspensão
+        let entitySuspended = false
+
+        if (type === 'critical') {
+          const newCount = entity.critical_events_count + 1
+          const shouldSuspend = newCount >= CRITICAL_EVENTS_LIMIT
+
+          await tx.entity.update({
+            where: { id: entityId },
+            data: {
+              criticalEventsCount: newCount,
+              ...(shouldSuspend && { status: 'suspended' }),
+            },
           })
-          return {
-            event: duplicate!,
-            status: 'duplicate' as const,
-            entitySuspended: false,
-          }
+
+          entitySuspended = shouldSuspend
         }
-        throw error
-      }
 
-      // 2d. Se o evento é crítico, incrementa o contador e verifica suspensão
-      let entitySuspended = false
-
-      if (type === 'critical') {
-        const newCount = entity.critical_events_count + 1
-        const shouldSuspend = newCount >= CRITICAL_EVENTS_LIMIT
-
-        await tx.entity.update({
-          where: { id: entityId },
-          data: {
-            criticalEventsCount: newCount,
-            ...(shouldSuspend && { status: 'suspended' }),
-          },
+        return {
+          event,
+          status: 'created' as const,
+          entitySuspended,
+        }
+      })
+    } catch (error: unknown) {
+      // Trata erro de duplicidade (constraint UNIQUE violada por race condition)
+      // Código P2002 é o erro do Prisma para unique constraint violation.
+      // Busca o evento existente FORA da transação (que já fez rollback).
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'P2002'
+      ) {
+        const duplicate = await prisma.event.findUnique({
+          where: { externalId },
         })
-
-        entitySuspended = shouldSuspend
+        return {
+          event: duplicate!,
+          status: 'duplicate' as const,
+          entitySuspended: false,
+        }
       }
-
-      return {
-        event,
-        status: 'created' as const,
-        entitySuspended,
-      }
-    })
+      throw error
+    }
 
     // ─── PASSO 3: Emitir no barramento para clientes SSE ───
     // Só emite se o evento foi realmente criado (não para duplicatas)
