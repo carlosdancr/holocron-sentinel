@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/providers/theme-provider'
+import { Logo } from '@/components/ui/logo'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,12 +47,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           collapsed ? 'justify-center px-2' : 'gap-2.5 px-4.5',
         )}
       >
-        <div
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-[7px] bg-brand font-mono text-[13px] font-bold tracking-tight text-brand-ink"
-          style={{ boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)' }}
-        >
-          HS
-        </div>
+        <Logo size={28} />
         {!collapsed && (
           <div className="min-w-0">
             <span className="text-sm font-semibold tracking-tight">Holocron Sentinel</span>

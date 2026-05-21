@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { Sidebar } from './sidebar'
+import { Logo } from '@/components/ui/logo'
 
 const MOBILE_BREAKPOINT = 768
 const STORAGE_KEY = 'sidebar-collapsed'
@@ -111,12 +112,7 @@ export function AppShell({ children }: AppShellProps) {
                 <line x1="2" y1="12" x2="14" y2="12" />
               </svg>
             </button>
-            <div
-              className="grid h-6 w-6 shrink-0 place-items-center rounded-[5px] bg-brand font-mono text-[11px] font-bold tracking-tight text-brand-ink"
-              style={{ boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)' }}
-            >
-              HS
-            </div>
+            <Logo size={24} />
             <span className="text-[13px] font-semibold tracking-tight">Holocron Sentinel</span>
           </div>
         )}
