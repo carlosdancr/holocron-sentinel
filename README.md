@@ -77,7 +77,7 @@ cd frontend
 npm test
 ```
 
-São 32 testes unitários com Vitest + React Testing Library cobrindo:
+São 33 testes unitários com Vitest + React Testing Library cobrindo:
 
 - **Utilitários** (`cn`, `formatRelative`, `formatTime`, `formatDateTime`, `formatDate`) — funções puras com edge cases (null, diferenças de tempo, formatos pt-BR)
 - **Hooks de API** (`useEntities`, `useRanking`, `useCreateEntity`, `useCreateEvent`, `useToggleEntityStatus`) — chamadas corretas ao backend, passagem de parâmetros, tratamento de sucesso/erro, flags de idempotência e suspensão
@@ -111,9 +111,9 @@ O Prisma é usado para migrations, tipos gerados e queries simples. Para queries
 
 O frontend usa o App Router com Client Components onde há estado/interação. Todas as chamadas à API passam por hooks customizados que encapsulam TanStack Query, garantindo cache, invalidação e loading states consistentes.
 
-### TanStack Table
+### TanStack Table + Paginação Server-Side
 
-A tabela do dashboard usa TanStack Table v8 com paginação client-side. Como o volume esperado é <100 entidades na interface, buscamos tudo em uma request (`limit=100`) e paginamos no client com `getPaginationRowModel()`. Isso simplifica filtros e ordenação sem roundtrips ao servidor.
+A tabela do dashboard usa TanStack Table v8 com `manualPagination: true` — toda a paginação, busca, filtro por status e ordenação são resolvidos no servidor. O endpoint `GET /entities` aceita `page`, `limit`, `status`, `search` e `sort`, e retorna além dos dados paginados um objeto `summary` com contadores globais (total, ativos, suspensos, eventos críticos, próximos do limite) usado nos KPIs sem necessidade de request extra. A busca no input é debounced (300ms) para evitar requests a cada tecla, e o hook usa `placeholderData: keepPreviousData` do TanStack Query para manter os dados da página anterior visíveis enquanto a nova carrega (com opacidade reduzida como feedback visual).
 
 ---
 
@@ -228,5 +228,3 @@ O ranking dos últimos 7 dias usa `INNER JOIN` com filtro temporal + `GROUP BY`,
 4. **Observabilidade**: logs estruturados (pino/winston), métricas de latência por endpoint, e tracing distribuído para debugar problemas em produção.
 
 5. **Cache HTTP**: adicionar `Cache-Control` e `ETag` nas rotas de listagem para reduzir carga no banco quando o frontend re-fetcha.
-
-6. **Paginação server-side no frontend**: com milhares de entidades, paginar no servidor em vez de trazer tudo com `limit=100`.

@@ -26,13 +26,34 @@ export class EntityService {
    * então usamos raw SQL para ter controle total da performance.
    */
   async list(input: ListEntitiesInput) {
-    const { page, limit, status } = input
+    const { page, limit, status, search, sort = 'threat' } = input
     const offset = (page - 1) * limit
 
-    // Monta a cláusula WHERE dinamicamente
-    const whereClause = status ? `WHERE e.status = '${status}'` : ''
-    // Versão segura com parâmetro para a contagem
-    const whereClauseParam = status ? `WHERE e.status = $1` : ''
+    // Monta cláusulas WHERE dinamicamente com parâmetros seguros
+    const conditions: string[] = []
+    const params: unknown[] = []
+    let paramIndex = 1
+
+    if (status) {
+      conditions.push(`e.status = $${paramIndex++}`)
+      params.push(status)
+    }
+
+    if (search) {
+      conditions.push(`e.name ILIKE $${paramIndex++}`)
+      params.push(`%${search}%`)
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    // Mapa de ordenação — cada opção resolve via índice ou subquery já presente
+    const orderMap: Record<string, string> = {
+      threat: 'e.critical_events_count DESC',
+      events: 'total_events DESC',
+      recent: 'last_event_at DESC NULLS LAST',
+      name: 'e.name ASC',
+    }
+    const orderBy = orderMap[sort] ?? orderMap.threat
 
     // Query principal com agregações via subqueries
     // Cada subquery é resolvida pelo índice (entityId, createdAt)
@@ -62,19 +83,47 @@ export class EntityService {
         (SELECT MAX(ev.created_at) FROM events ev WHERE ev.entity_id = e.id) AS last_event_at
       FROM entities e
       ${whereClause}
-      ORDER BY e.created_at DESC
-      LIMIT ${limit}
-      OFFSET ${offset}
+      ORDER BY ${orderBy}
+      LIMIT $${paramIndex}
+      OFFSET $${paramIndex + 1}
       `,
+      ...params,
+      limit,
+      offset,
     )
 
-    // Conta o total para paginação
+    // Conta o total filtrado para paginação
     const countResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
-      `SELECT COUNT(*) as count FROM entities e ${whereClauseParam}`,
-      ...(status ? [status] : []),
+      `SELECT COUNT(*) as count FROM entities e ${whereClause}`,
+      ...params,
+    )
+    const total = Number(countResult[0].count)
+
+    // Summary global (sem filtros) para KPIs do dashboard
+    const summaryResult = await prisma.$queryRawUnsafe<
+      Array<{
+        total: bigint
+        active: bigint
+        suspended: bigint
+        total_critical_events: bigint
+        total_events: bigint
+        near_limit: bigint
+      }>
+    >(
+      `
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'active') AS active,
+        COUNT(*) FILTER (WHERE status = 'suspended') AS suspended,
+        COALESCE(SUM(critical_events_count), 0) AS total_critical_events,
+        (SELECT COUNT(*) FROM events) AS total_events,
+        COUNT(*) FILTER (WHERE status = 'active' AND critical_events_count >= $1) AS near_limit
+      FROM entities
+      `,
+      Math.ceil(10 * 0.7), // 70% do CRITICAL_EVENTS_LIMIT
     )
 
-    const total = Number(countResult[0].count)
+    const summary = summaryResult[0]
 
     return {
       data: entities.map((entity) => ({
@@ -93,6 +142,14 @@ export class EntityService {
         limit,
         total,
         totalPages: Math.ceil(total / limit),
+      },
+      summary: {
+        total: Number(summary.total),
+        active: Number(summary.active),
+        suspended: Number(summary.suspended),
+        totalCriticalEvents: Number(summary.total_critical_events),
+        totalEvents: Number(summary.total_events),
+        nearLimit: Number(summary.near_limit),
       },
     }
   }

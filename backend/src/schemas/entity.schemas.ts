@@ -10,6 +10,8 @@ export const listEntitiesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(['active', 'suspended']).optional(),
+  search: z.string().optional(),
+  sort: z.enum(['threat', 'events', 'recent', 'name']).default('threat'),
 })
 
 // Schema para params de rota que recebem :id

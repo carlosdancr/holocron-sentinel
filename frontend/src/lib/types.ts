@@ -21,6 +21,14 @@ export interface EntityListResponse {
     total: number
     totalPages: number
   }
+  summary: {
+    total: number
+    active: number
+    suspended: number
+    totalCriticalEvents: number
+    totalEvents: number
+    nearLimit: number
+  }
 }
 
 // ===== Ranking =====

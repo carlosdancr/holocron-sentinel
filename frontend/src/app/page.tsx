@@ -1,13 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Radio, Send, Search, X, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   createColumnHelper,
   flexRender,
 } from '@tanstack/react-table'
@@ -36,24 +35,17 @@ type SortBy = 'threat' | 'events' | 'recent' | 'name'
 
 const PAGE_SIZE = 20
 
-// ===== Helpers =====
+// ===== Hook de debounce =====
 
-function sortEntities(entities: Entity[], sortBy: SortBy): Entity[] {
-  const sorted = [...entities]
-  switch (sortBy) {
-    case 'threat':
-      return sorted.sort((a, b) => b.criticalEventsCount - a.criticalEventsCount)
-    case 'events':
-      return sorted.sort((a, b) => b.totalEvents - a.totalEvents)
-    case 'recent':
-      return sorted.sort(
-        (a, b) => new Date(b.lastEventAt || 0).getTime() - new Date(a.lastEventAt || 0).getTime(),
-      )
-    case 'name':
-      return sorted.sort((a, b) => a.name.localeCompare(b.name))
-    default:
-      return sorted
-  }
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+
+  return debounced
 }
 
 // ===== Componente: Dialog de criar entidade (simples) =====
@@ -138,56 +130,57 @@ const columnHelper = createColumnHelper<Entity>()
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { data, isLoading } = useEntities({ limit: 100 })
   const toggleStatus = useToggleEntityStatus()
 
+  // Controles de filtro/paginação — server-side
+  const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortBy, setSortBy] = useState<SortBy>('threat')
   const [dialogOpen, setDialogOpen] = useState(false)
 
+  // Debounce a busca para não disparar request a cada tecla
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  // Volta à página 1 quando os filtros mudam
+  const prevFilterRef = useRef({ statusFilter, debouncedSearch, sortBy })
+  useEffect(() => {
+    const prev = prevFilterRef.current
+    if (
+      prev.statusFilter !== statusFilter ||
+      prev.debouncedSearch !== debouncedSearch ||
+      prev.sortBy !== sortBy
+    ) {
+      setPage(1)
+      prevFilterRef.current = { statusFilter, debouncedSearch, sortBy }
+    }
+  }, [statusFilter, debouncedSearch, sortBy])
+
+  // Fetch server-side
+  const { data, isLoading, isPlaceholderData } = useEntities({
+    page,
+    limit: PAGE_SIZE,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    search: debouncedSearch || undefined,
+    sort: sortBy,
+  })
+
   const entities = useMemo(() => data?.data ?? [], [data])
+  const pagination = data?.pagination
+  const summary = data?.summary
 
-  // KPIs computados
-  const kpis = useMemo(() => {
-    const total = entities.length
-    const active = entities.filter((e) => e.status === 'active').length
-    const suspended = total - active
-    const totalCritical = entities.reduce((s, e) => s + e.criticalEventsCount, 0)
-    const totalEvents = entities.reduce((s, e) => s + e.totalEvents, 0)
-    const nearLimit = entities.filter(
-      (e) => e.status === 'active' && e.criticalEventsCount >= CRITICAL_EVENTS_LIMIT * 0.7,
-    ).length
-    return { total, active, suspended, totalCritical, totalEvents, nearLimit }
-  }, [entities])
-
-  // Contadores para os chips
-  const counts = useMemo(
+  // KPIs vindos do summary (global, sem filtros)
+  const kpis = useMemo(
     () => ({
-      all: entities.length,
-      active: entities.filter((e) => e.status === 'active').length,
-      suspended: entities.filter((e) => e.status === 'suspended').length,
+      total: summary?.total ?? 0,
+      active: summary?.active ?? 0,
+      suspended: summary?.suspended ?? 0,
+      totalCritical: summary?.totalCriticalEvents ?? 0,
+      totalEvents: summary?.totalEvents ?? 0,
+      nearLimit: summary?.nearLimit ?? 0,
     }),
-    [entities],
+    [summary],
   )
-
-  // Filtro + ordenação
-  const filtered = useMemo(() => {
-    let result = entities
-
-    if (search) {
-      const q = search.toLowerCase()
-      result = result.filter(
-        (e) => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q),
-      )
-    }
-
-    if (statusFilter !== 'all') {
-      result = result.filter((e) => e.status === statusFilter)
-    }
-
-    return sortEntities(result, sortBy)
-  }, [entities, search, statusFilter, sortBy])
 
   // Toggle status com toast
   function handleToggleStatus(entity: Entity) {
@@ -275,22 +268,29 @@ export default function DashboardPage() {
     [toggleStatus.isPending],
   )
 
+  // TanStack Table com paginação manual (server-side)
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filtered,
+    data: entities,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: { pageSize: PAGE_SIZE, pageIndex: 0 },
+    manualPagination: true,
+    pageCount: pagination?.totalPages ?? -1,
+    state: {
+      pagination: { pageIndex: page - 1, pageSize: PAGE_SIZE },
     },
-    autoResetPageIndex: true,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === 'function'
+        ? updater({ pageIndex: page - 1, pageSize: PAGE_SIZE })
+        : updater
+      setPage(next.pageIndex + 1)
+    },
   })
 
-  const { pageIndex, pageSize } = table.getState().pagination
-  const totalPages = table.getPageCount()
-  const from = filtered.length > 0 ? pageIndex * pageSize + 1 : 0
-  const to = Math.min((pageIndex + 1) * pageSize, filtered.length)
+  const totalPages = pagination?.totalPages ?? 0
+  const totalFiltered = pagination?.total ?? 0
+  const from = totalFiltered > 0 ? (page - 1) * PAGE_SIZE + 1 : 0
+  const to = Math.min(page * PAGE_SIZE, totalFiltered)
 
   return (
     <>
@@ -362,7 +362,7 @@ export default function DashboardPage() {
               <input
                 type="text"
                 className="h-8.5 flex-1 bg-transparent text-[13px] outline-none placeholder:text-text-faint"
-                placeholder="Buscar por nome ou ID..."
+                placeholder="Buscar por nome..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -378,9 +378,9 @@ export default function DashboardPage() {
               value={statusFilter}
               onChange={(v) => setStatusFilter(v as StatusFilter)}
               options={[
-                { value: 'all', label: 'Todas', count: counts.all },
-                { value: 'active', label: 'Ativas', count: counts.active },
-                { value: 'suspended', label: 'Suspensas', count: counts.suspended },
+                { value: 'all', label: 'Todas', count: kpis.total },
+                { value: 'active', label: 'Ativas', count: kpis.active },
+                { value: 'suspended', label: 'Suspensas', count: kpis.suspended },
               ]}
             />
 
@@ -412,7 +412,7 @@ export default function DashboardPage() {
               <Loader2 size={16} className="animate-spin" />
               <span className="text-[13px]">Carregando entidades...</span>
             </div>
-          ) : filtered.length === 0 ? (
+          ) : entities.length === 0 ? (
             <div className="flex flex-1 min-h-0 items-center justify-center">
               <EmptyState
                 icon={<Search size={24} strokeWidth={1.6} />}
@@ -432,7 +432,7 @@ export default function DashboardPage() {
               />
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-auto">
+            <div className={cn('flex-1 min-h-0 overflow-auto', isPlaceholderData && 'opacity-60 transition-opacity duration-200')}>
               <table className="w-full border-collapse text-[13px]">
                 <thead>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -489,9 +489,9 @@ export default function DashboardPage() {
           {/* Footer com paginação */}
           <div className="flex items-center justify-between border-t border-border px-4 py-3">
             <span className="font-mono text-xs text-text-faint">
-              {filtered.length > 0 ? (
+              {totalFiltered > 0 ? (
                 <>
-                  {from}–{to} de {filtered.length} entidades
+                  {from}–{to} de {totalFiltered} entidades
                 </>
               ) : (
                 <>0 entidades</>
@@ -512,10 +512,10 @@ export default function DashboardPage() {
                 {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i}
-                    onClick={() => table.setPageIndex(i)}
+                    onClick={() => setPage(i + 1)}
                     className={cn(
                       'inline-flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 font-mono text-xs font-medium transition-colors duration-120',
-                      i === pageIndex
+                      i + 1 === page
                         ? 'bg-brand text-brand-ink'
                         : 'border border-border bg-surface text-text-muted hover:bg-surface-2 hover:border-border-strong',
                     )}
